@@ -1,0 +1,96 @@
+3–WIRE COMMUNICATIONS
+The 3–wire bus is comprised of three signals. These are
+the RST (reset) signal, the CLK (clock) signal, and the
+DQ (data) signal. All data transfers are initiated by driv-
+ing the RST input high. Driving the RST input low termi-
+nates communication. (See Figures 4 and 5.) A clock
+cycle is a sequence of a falling edge followed by a rising
+edge. For data inputs, the data must be valid during the
+rising edge of a clock cycle. Data bits are output on the
+falling edge of the clock, and remain valid through the
+rising edge.
+When reading data from the DS1620, the DQ pin goes
+to a high impedance state while the clock is high. Taking
+RST low will terminate any communication and cause
+the DQ pin to go to a high impedance state.
+Data over the 3–wire interface is communicated LSB
+first. The command set for the 3–wire interface as
+shown in Table 3 is as follows.
+
+Read Temperature [AAh]
+This command reads the contents of the register which
+contains the last temperature conversion result. The
+next nine clock cycles will output the contents of this reg-
+ister.
+
+Write TH [01h]
+This command writes to the TH (HIGH TEMPERA-
+TURE) register. After issuing this command, the next
+nine clock cycles clock in the 9–bit temperature limit
+which will set the threshold for operation of the T HIGH
+output.
+
+Write TL [02h]
+This command writes to the TL (LOW TEMPERA-
+TURE) register. After issuing this command, the next
+nine clock cycles clock in the 9–bit temperature limit
+which will set the threshold for operation of the T LOW
+output.
+
+Read TH [A1h]
+This command reads the value of the TH (HIGH TEM-
+PERATURE) register. After issuing this command, the
+next nine clock cycles clock out the 9–bit temperature
+limit which sets the threshold for operation of the T HIGH
+output.
+
+Read TL [A2h]
+This command reads the value of the TL (LOW TEM-
+PERATURE) register. After issuing this command, the
+next nine clock cycles clock out the 9–bit temperature
+limit which sets the threshold for operation of the T LOW
+output.
+
+Read Counter [A0h]
+This command reads the value of the counter byte. The
+next nine clock cycles will output the contents of this reg-
+ister.
+
+Read Slope [A9h]
+This command reads the value of the slope counter byte
+from the DS1620. The next nine clock cycles will output
+the contents of this register.
+
+Start Convert T [EEh]
+This command begins a temperature conversion. No
+further data is required. In one–shot mode, the tempera-
+ture conversion will be performed and then the DS1620
+will remain idle. In continuous mode, this command will
+initiate continuous conversions.
+
+Stop Convert T [22h]
+This command stops temperature conversion. No fur-
+ther data is required. This command may be used to halt
+a DS1620 in continuous conversion mode. After issuing
+this command, the current temperature measurement
+will be completed, and then the DS1620 will remain idle
+until a Start Convert T is issued to resume continuous
+operation.
+
+Write Config [0Ch]
+This command writes to the configuration register. After
+issuing this command, the next eight clock cycles clock
+in the value of the configuration register.
+
+Read Config [ACh]
+This command reads the value in the configuration reg-
+ister. After issuing this command, the next eight clock
+cycles output the value of the configuration register.
+
+A clock cycle is a sequence of a falling edge followed by a rising edge. For data inputs, 
+the data must be valid during the rising edge of a clock cycle. Data bits are output on the
+falling edge of the clock, and remain valid through the rising edge.
+
+Data in - rising edge
+Data out - falling edge
+

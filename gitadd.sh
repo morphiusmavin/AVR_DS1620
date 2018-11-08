@@ -15,5 +15,7 @@ git add portpins.h
 git add test_float.cx
 git add DS1620.txt
 git add README.md
+git add DS1620.*
 git status
 
+DS1620.*

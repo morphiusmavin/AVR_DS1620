@@ -32,103 +32,35 @@ DS1620 pinout:
 #include "USART.h"
 #include "macros.h"
 #include "pinDefines.h"
+#include "DS1620.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #define LEN 200
 
+/*
 #define CLK PORTD2
 #define DATA PORTD3
 #define RST PORTD4
-
-#define SET_CLK()	_SB(PORTD,CLK)
-#define CLR_CLK()	_CB(PORTD,CLK)
-
-#define SET_DATA()	_SB(PORTD,DATA)
-#define CLR_DATA()	_CB(PORTD,DATA)
-
-#define SET_RST()	_SB(PORTD,RST)
-#define CLR_RST()	_CB(PORTD,RST)
-
-/*  DS1620 Commands */
-#define CONF_REG 0x0c
-#define READ_CONF 0xAC
-#define READ_TEMP 0xaa
-#define START_CONVERT 0xee
-#define STOP_CONVERT 0x22
-
-void write_command(int command);
-void out_bit(int bit);
-int read_raw_data(void);
-float convert_to_T_F(int raw_data);
-
-int data=0x00;  /**Global variable**/
+*/
 
 /***************************************************************/
 int main(void)
 {
-	int raw_data, n;
-	int configure=0x02;
-	float T_F;
 	UCHAR xbyte;
 	UINT temp;
+	int raw_data;
 
 	initUSART();
-
-	DDRD &= 0xFF;
-	_delay_us(2);
-
-	CLR_RST();
-	SET_CLK();
-	SET_RST();
-
-	write_command(CONF_REG); /* configure DS1620 in CPU Mode */      
-	write_command(configure);
-	CLR_RST();
-	_delay_us(200);  /* wait for programming of configuration status register */
-#if 0
-	SET_CLK();
-	SET_RST();
-	write_command(READ_CONF);
-	raw_data = 0;
-	raw_data=read_raw_data();        /*read raw temp data */
-
-	CLR_RST();
-
-	// send high byte of results 1st to serial port monitor
-	temp = (UINT)raw_data;
-	temp >>= 8;
-	xbyte = (UCHAR)temp;
-	transmitByte(xbyte);
 	_delay_ms(1);
-	temp = (UINT)raw_data;
-	xbyte = (UCHAR)temp;
-	// then send the low byte - make sure to restart the monitor program
-	// so the bytes don't get reversed
-	transmitByte(xbyte);
-
-	_delay_us(5000);  /* wait for programming of configuration status register */
-#endif
-	SET_CLK();
-	SET_RST();
-	write_command(START_CONVERT);   /* start converting temp*/    
-	CLR_RST();
+	init1620();
 
 	while(1)
 	{	
-		_delay_ms(20);
-		SET_CLK();
+		_delay_ms(5);
+		raw_data = readTempFrom1620_int();
 		_delay_ms(1);
-		SET_RST();
-		_delay_ms(1);
-		write_command(READ_TEMP);    /*command to 1620 for reading temp*/      
-		_delay_ms(1);
-		raw_data=read_raw_data();        /*read raw temp data */
-		_delay_ms(15);
-
-//			T_F=convert_to_T_F(raw_data);
-
 		temp = (UINT)raw_data;
 		temp >>= 8;
 		xbyte = (UCHAR)temp;
@@ -137,15 +69,7 @@ int main(void)
 		temp = (UINT)raw_data;
 		xbyte = (UCHAR)temp;
 		transmitByte(xbyte);
-
-//			printf("The temperature is %f degrees fahrenheit.\n\n", T_F);    
-//			sleep(10);
 	}
-	SET_CLK();
-	SET_RST();
-	write_command(STOP_CONVERT); /* stop conversion to save power */    
-	CLR_RST();
-	_delay_ms(5000);
 	return (0);		// this should never happen
 }
 
@@ -162,65 +86,4 @@ float convert_to_T_F(int raw_data)
 	return(T_F);
 }
 
-/***************************************************************/
-void write_command(int command)
-/* sends 8 bit command on /STROBE output, least sig bit first */ 
-{
-	int n, bit;
-
-	for(n=0;n<8;n++)
-	{
-		bit = ((command >> n) & (0x01));
-		out_bit(bit);
-	}
-}
-
-/***************************************************************/
-int read_raw_data(void)
-{
-	int bit,n;
-	int raw_data=0;
-	bit = 0;
-//	UCHAR test;
-
-	DDRD &= 0xF7;
-
-	_delay_us(1);
-	
-	for(n=0;n<9;n++)
-	{
-		_delay_ms(10);
-		CLR_CLK();
-//		test = PIND & _BV(DATA);
-//		transmitByte(test);
-		_delay_ms(10);
-		if((PIND & _BV(DATA)) == 0x08)
-			bit = 1;
-		else
-			bit = 0;
-
-		_delay_ms(10);
-		SET_CLK();
-		raw_data = raw_data | (bit << n);
-	}
-	DDRD |= 0x08;
-	return(raw_data);
-}
-
-/***************************************************************/
-void out_bit(int bit)
-/* state of /STROBE set to value of bit, followed by clock pulse */ 
-{
-	_delay_ms(10);
-	if(bit & 0x01)
-	{
-		SET_DATA();
-	}
-	else CLR_DATA();
-	_delay_ms(10);
-	CLR_CLK();
-	_delay_ms(10);
-	SET_CLK();
-	_delay_ms(10);
-}
 

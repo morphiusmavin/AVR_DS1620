@@ -87,10 +87,15 @@ This command reads the value in the configuration reg-
 ister. After issuing this command, the next eight clock
 cycles output the value of the configuration register.
 
-A clock cycle is a sequence of a falling edge followed by a rising edge. For data inputs, 
-the data must be valid during the rising edge of a clock cycle. Data bits are output on the
+A clock cycle is a sequence of a falling edge followed by a rising edge. 
+
+For data inputs, 
+the data must be valid during the rising edge of a clock cycle. 
+
+Data bits are output on the
 falling edge of the clock, and remain valid through the rising edge.
 
 Data in - rising edge
 Data out - falling edge
+
 

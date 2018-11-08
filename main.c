@@ -10,7 +10,6 @@ RAW		gnd		RESET*		VCC		PC3		PC2		PC1		PC0		PB5		PB4		PB3		PB2
 																	SCLK	MISO	MOSI	SS
 *either one goes to CS signal on programmer
 
-
 DS1620 pinout:
 
 8 7 6 5
@@ -66,8 +65,7 @@ float convert_to_T_F(int raw_data);
 
 int data=0x00;  /**Global variable**/
 
-volatile UCHAR xbyte;
-
+/***************************************************************/
 int main(void)
 {
 	int raw_data, n;
@@ -89,6 +87,7 @@ int main(void)
 	write_command(configure);
 	CLR_RST();
 	_delay_us(200);  /* wait for programming of configuration status register */
+#if 0
 	SET_CLK();
 	SET_RST();
 	write_command(READ_CONF);
@@ -97,6 +96,7 @@ int main(void)
 
 	CLR_RST();
 
+	// send high byte of results 1st to serial port monitor
 	temp = (UINT)raw_data;
 	temp >>= 8;
 	xbyte = (UCHAR)temp;
@@ -104,23 +104,28 @@ int main(void)
 	_delay_ms(1);
 	temp = (UINT)raw_data;
 	xbyte = (UCHAR)temp;
+	// then send the low byte - make sure to restart the monitor program
+	// so the bytes don't get reversed
 	transmitByte(xbyte);
 
 	_delay_us(5000);  /* wait for programming of configuration status register */
+#endif
 	SET_CLK();
 	SET_RST();
 	write_command(START_CONVERT);   /* start converting temp*/    
 	CLR_RST();
-	_delay_ms(200);
 
 	while(1)
 	{	
+		_delay_ms(20);
 		SET_CLK();
+		_delay_ms(1);
 		SET_RST();
+		_delay_ms(1);
 		write_command(READ_TEMP);    /*command to 1620 for reading temp*/      
+		_delay_ms(1);
 		raw_data=read_raw_data();        /*read raw temp data */
-
-		CLR_RST();
+		_delay_ms(15);
 
 //			T_F=convert_to_T_F(raw_data);
 
@@ -135,7 +140,6 @@ int main(void)
 
 //			printf("The temperature is %f degrees fahrenheit.\n\n", T_F);    
 //			sleep(10);
-		_delay_ms(1000);
 	}
 	SET_CLK();
 	SET_RST();
@@ -145,6 +149,7 @@ int main(void)
 	return (0);		// this should never happen
 }
 
+/***************************************************************/
 float convert_to_T_F(int raw_data)
 {
 	float T_F, T_celcius;
@@ -157,6 +162,7 @@ float convert_to_T_F(int raw_data)
 	return(T_F);
 }
 
+/***************************************************************/
 void write_command(int command)
 /* sends 8 bit command on /STROBE output, least sig bit first */ 
 {
@@ -169,6 +175,7 @@ void write_command(int command)
 	}
 }
 
+/***************************************************************/
 int read_raw_data(void)
 {
 	int bit,n;
@@ -182,14 +189,17 @@ int read_raw_data(void)
 	
 	for(n=0;n<9;n++)
 	{
+		_delay_ms(10);
 		CLR_CLK();
 //		test = PIND & _BV(DATA);
 //		transmitByte(test);
+		_delay_ms(10);
 		if((PIND & _BV(DATA)) == 0x08)
 			bit = 1;
 		else
 			bit = 0;
 
+		_delay_ms(10);
 		SET_CLK();
 		raw_data = raw_data | (bit << n);
 	}
@@ -197,16 +207,20 @@ int read_raw_data(void)
 	return(raw_data);
 }
 
-
+/***************************************************************/
 void out_bit(int bit)
 /* state of /STROBE set to value of bit, followed by clock pulse */ 
 {
-	CLR_CLK();
+	_delay_ms(10);
 	if(bit & 0x01)
 	{
 		SET_DATA();
 	}
 	else CLR_DATA();
+	_delay_ms(10);
+	CLR_CLK();
+	_delay_ms(10);
 	SET_CLK();
+	_delay_ms(10);
 }
 

@@ -56,14 +56,22 @@ DS1620 pinout:
 #include <stdio.h>
 #include <stdlib.h>
 
-#define RELAY_PORT PORTB
-#define RELAY_DDR DDRB
 
-// relays for heat strips
-#define RELAY1 PB4
-#define RELAY2 PB6
-#define RELAY3 PB7
-// relays for switching float charger are PB0->PB3
+void heater_relay(int port, int onoff);
+void float_relay(UCHAR mask);
+
+// relays for switching float charger are PC0->PC3
+#define FLOAT_RELAY_PORT PORTC
+#define FLOAT_RELAY_DDR DDRC
+
+// relays for heat strips are PB0->PB2
+#define HEAT_RELAY_DDR DDRB
+#define HEAT_RELAY_PORT PORTB
+#define HEAT_RELAY1 PB0
+#define HEAT_RELAY2 PB1
+#define HEAT_RELAY3 PB2
+#define LED PB5
+
 
 volatile int dc2;
 volatile UCHAR xbyte;
@@ -72,9 +80,13 @@ ISR(TIMER1_OVF_vect)
 { 
 	TCNT1 = 0x0002;	// this counts up so the lower, the slower (0xFFFF is the fastest)
 	dc2++;
+	if(dc2 % 2 == 0)
+		HEAT_RELAY_PORT |= (1 << LED);
+	else
+		HEAT_RELAY_PORT &= ~(1 << LED);
 }
 
-/***************************************************************/
+//******************************************************************************************//
 int main(void)
 {
 	UINT temp;
@@ -82,7 +94,7 @@ int main(void)
 	// hex values 0x2b = 70.7F
 	// and 0x31 = 76.1F
 	int high_temp, low_temp;
-	UINT mask, utemp;
+	UINT mask, utemp, utemp2;
 	int dc3;
 	int i;
 	low_temp = 0x002b;
@@ -90,7 +102,8 @@ int main(void)
 
 	initUSART();
 
-	RELAY_DDR = 0xFF;		// all outputs
+	HEAT_RELAY_DDR = 0x27;
+	FLOAT_RELAY_DDR = 0x0F;
 
 	TCNT1 = 0xFFF0;
 	TCCR1A = 0x00;
@@ -105,36 +118,41 @@ int main(void)
 	mask = 1;
 	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
 
-	RELAY_DDR = 0xFF;		// all outputs
-
 	dc3 = 0;
 
+	HEAT_RELAY_PORT = 0xFF;
+	FLOAT_RELAY_PORT = 0xFF;
+
+	// flicker the LED
+/*
+	for(i = 0;i < 20;i++)
+	{
+		HEAT_RELAY_PORT |= (1 << LED);
+		_delay_ms(100);
+		HEAT_RELAY_PORT &= ~(1 << LED);
+		_delay_ms(100);
+	}		
+	for(i = 0;i < 3;i++)
+	{
+		heater_relay(0,1);
+		_delay_ms(500);
+	}
+	for(i = 0;i < 3;i++)
+	{
+		heater_relay(0,1);
+		_delay_ms(500);
+	}
+*/
 	_delay_ms(1);
 	init1620();
 
-	RELAY_PORT = 1;
-
 	raw_data = 0x002c;
+
 	while(1)
 	{	
 		if(dc2 > 115)	// about a minute
 		{
 			dc2 = 0;
-
-			if(raw_data > high_temp)
-			{
-				RELAY_PORT &= ~(1 << PB4);
-				RELAY_PORT &= ~(1 << PB5);
-			}
-			else if(raw_data < low_temp)
-			{
-				RELAY_PORT |= (1 << PB4);
-				RELAY_PORT |= (1 << PB5);
-			}
-			if(raw_data < 0x0025)
-				RELAY_PORT |= (1 << PB6);
-			else
-				RELAY_PORT &= ~(1 << PB6);	
 
 			raw_data = readTempFrom1620_int();
 			_delay_ms(1);
@@ -146,14 +164,43 @@ int main(void)
 			temp = (UINT)raw_data;
 			xbyte = (UCHAR)temp;
 			transmitByte(xbyte);
-			utemp = PORTB;
+
+			// format 3rd byte sent to serial port 
+			// as XHHHFFFF where H = heat strips and F = float relays
+			utemp = FLOAT_RELAY_PORT;
+			utemp &= 0x0F;
+			utemp2 = HEAT_RELAY_PORT;
+			utemp2 <<= 4;
+			utemp2 &= 0xF0;
+			utemp |= utemp2;
+			utemp = ~utemp;
 			transmitByte(utemp);
 
+			if(raw_data > high_temp)
+			{
+				heater_relay(0,0);
+//				HEAT_RELAY_PORT &= ~(1 << LED);		// LED only shows if heat strip 1 is on
+			}
+			else if(raw_data < low_temp)
+			{
+				heater_relay(0,1);
+//				HEAT_RELAY_PORT |= (1 << LED);
+			}
+
+			if(raw_data < 0x0025)
+				heater_relay(1,1);					// if temp < ~65F then turn on
+			else									// 2nd heat strip
+				heater_relay(1,0);
+
+			if(raw_data < 0x001A)
+				heater_relay(2,1);					// if temp < ~55F then turn on
+			else									// 3rd heat strip
+				heater_relay(2,0);
+			// switch float charge relays every 10 min.
 			if(++dc3 > 10)
 			{
 				dc3 = 0;
-				RELAY_PORT &= 0xF0;
-				RELAY_PORT |= (UCHAR)mask;
+				float_relay((UCHAR)mask);
 				mask <<= 1;
 				// only do the 1st 4 of PORTB
 				if(mask == 0x0010)
@@ -164,3 +211,58 @@ int main(void)
 	return (0);		// this should never happen
 }
 
+//******************************************************************************************//
+// relay board is active low inputs so to turn on relay set bit low
+void heater_relay(int port, int onoff)
+{
+	switch(port)
+	{
+		case 0:
+			if(onoff > 0)
+				HEAT_RELAY_PORT &= ~(1 << HEAT_RELAY1);
+			else	
+				HEAT_RELAY_PORT |= (1 << HEAT_RELAY1);
+		break;
+		case 1:
+			if(onoff > 0)
+				HEAT_RELAY_PORT &= ~(1 << HEAT_RELAY2);
+			else	
+				HEAT_RELAY_PORT |= (1 << HEAT_RELAY2);
+		break;
+		case 2:
+			if(onoff > 0)
+				HEAT_RELAY_PORT &= ~(1 << HEAT_RELAY3);
+			else	
+				HEAT_RELAY_PORT |= (1 << HEAT_RELAY3);
+		break;
+		default:
+			HEAT_RELAY_PORT |= (1 << HEAT_RELAY1);
+			HEAT_RELAY_PORT |= (1 << HEAT_RELAY2);
+			HEAT_RELAY_PORT |= (1 << HEAT_RELAY3);
+		break;
+	}
+}
+
+//******************************************************************************************//
+void float_relay(UCHAR mask)
+{
+	FLOAT_RELAY_PORT |= 0x0F;
+	switch(mask)
+	{
+		case 0x01:
+			FLOAT_RELAY_PORT &= ~(1 << PC0);
+		break;
+		case 0x02:
+			FLOAT_RELAY_PORT &= ~(1 << PC1);
+		break;
+		case 0x04:
+			FLOAT_RELAY_PORT &= ~(1 << PC2);
+		break;
+		case 0x08:
+			FLOAT_RELAY_PORT &= ~(1 << PC3);
+		break;
+		default:
+			FLOAT_RELAY_PORT |= 0x0F;
+		break;
+	}
+}

@@ -116,7 +116,6 @@ int main(void)
 	dc2 = 0;
 	dc3 = 0;
 	mask = 1;
-	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
 
 	dc3 = 0;
 
@@ -124,7 +123,7 @@ int main(void)
 	FLOAT_RELAY_PORT = 0xFF;
 
 	// flicker the LED
-/*
+
 	for(i = 0;i < 20;i++)
 	{
 		HEAT_RELAY_PORT |= (1 << LED);
@@ -132,17 +131,10 @@ int main(void)
 		HEAT_RELAY_PORT &= ~(1 << LED);
 		_delay_ms(100);
 	}		
-	for(i = 0;i < 3;i++)
-	{
-		heater_relay(0,1);
-		_delay_ms(500);
-	}
-	for(i = 0;i < 3;i++)
-	{
-		heater_relay(0,1);
-		_delay_ms(500);
-	}
-*/
+	float_relay(0x08);
+
+	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
+
 	_delay_ms(1);
 	init1620();
 

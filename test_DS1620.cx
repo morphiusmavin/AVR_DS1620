@@ -1,4 +1,4 @@
-
+/*********************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,17 +24,20 @@
 #define TRUE 1
 #define LEN 200
 #define TIME_DELAY 2000
+typedef unsigned char UCHAR;
+typedef unsigned int UINT;
+UCHAR f_or_c = 1;	// gets F degrees
+
+
 
 float convert_to_T_F(int raw_data);
-
-//int f_or_c = 1;	// gets F degrees
-int f_or_c = 0;	// get C degrees
 
 int set_interface_attribs (int fd, int speed, int parity);
 void set_blocking (int fd, int should_block);
 
 //volatile int STOP=FALSE;
 
+/*********************************************************************************/
 int set_interface_attribs (int fd, int speed, int parity)
 {
         struct termios tty;
@@ -77,6 +80,7 @@ int set_interface_attribs (int fd, int speed, int parity)
         return 0;
 }
 
+/*********************************************************************************/
 void set_blocking (int fd, int should_block)
 {
         struct termios tty;
@@ -95,18 +99,38 @@ void set_blocking (int fd, int should_block)
                 printf ("error %d setting term attributes", errno);
 }
 
-
-int main(void)
+/*********************************************************************************/
+int main(int argc, char *argv[])
 {
 	int fd,c, res, res2;
 	int i,j;
 	int ret;
-	unsigned char ch, ch2;
+	UCHAR ch, ch2;
 	struct termios oldtio,newtio;
-	unsigned char buf[LEN];
+	UCHAR buf[LEN];
 	memset(&newtio, 0, sizeof newtio);
-	unsigned char row, col;
-	unsigned int temp, temp2;
+	UCHAR row, col;
+	UINT temp, temp2;
+	UCHAR param1, param2, param3, param4;
+
+	if(argc < 5)
+	{
+		printf("usage: %s <main_loop_time_delay> <second_loop_time_delay> <ambient_offset_param> <inside_offset_param> [1 for C, 0 for F]\n",argv[0]);
+		exit(1);
+	}
+	param1 = (unsigned char)atoi(argv[1]);
+	param2 = (unsigned char)atoi(argv[2]);
+	param3 = (unsigned char)atoi(argv[3]);
+	param4 = (unsigned char)atoi(argv[4]);
+	printf("%d %d %d %d\n",param1, param2, param3, param4);
+
+	if(argc == 6)
+		f_or_c = atoi(argv[5]);
+
+	if(f_or_c == 0)
+		printf("output is in C\n");
+	else printf("output is in F\n");
+	printf("%d\n",f_or_c);
 
 	fd = open (MODEMDEVICE, O_RDWR | O_NOCTTY | O_SYNC);
 	if (fd <0) {perror(MODEMDEVICE);
@@ -131,22 +155,24 @@ int main(void)
 	res2 = 0;
 	ch = '*';
 	j = 1;
-	for(j = 0;j < 92;j++)
-		printf("*");
 	printf("\n");
 	j = 0;
-	printf("\n\nwaiting for chars...\n");
-	for(i = 0;i < LEN;i++)
-	{
-		buf[i] = ch;
-		if(++ch > 0x7e)
-			ch = 0x21;
-	}
-//	for(i = 0;i < LEN;i++)
-//		write(fd,&buf[i],1);
+/*
+	write(fd,&param1,1);
+	usleep(10000);
+	write(fd,&param2,1);
+	usleep(10000);
+	write(fd,&param3,1);
+	usleep(10000);
+	write(fd,&param4,1);
+	usleep(10000);
+*/
+	printf("\n\nwaiting for the DS1620's to send data...\n");
+
 	i = 0;
 	while(1)
 	{
+		// read the 2 bytes sent over 1st as the ambient temp
 		read(fd,&ch,1);
 		temp = (unsigned int)ch;
 		temp <<= 8;
@@ -158,10 +184,30 @@ int main(void)
 	//	printf("%02x %d\n",temp,temp);
 //		printf("%02x ",temp);
 		if(f_or_c == 1)
-			printf("temp: %0.2f degrees F\n",(double)convert_to_T_F((int)temp));
+			printf("ambient temp: %0.2f degrees F ",(double)convert_to_T_F((int)temp));
 		else
-			printf("temp: %0.2f degrees C\n",(double)convert_to_T_F((int)temp));
+			printf("ambient temp: %0.2f degrees C n",(double)convert_to_T_F((int)temp));
+
+
+		// read the next 2 bytes sent over as the inside box temp
 		read(fd,&ch,1);
+		temp = (unsigned int)ch;
+		temp <<= 8;
+	//	printf("%02x ",temp);
+		read(fd,&ch,1);
+		temp2 = (unsigned int)ch;
+	//	printf("%02x ",temp2);
+		temp |= (unsigned int)temp2;
+	//	printf("%02x %d\n",temp,temp);
+//		printf("%02x ",temp);
+		if(f_or_c == 1)
+			printf("inside temp: %0.2f degrees F\n",(double)convert_to_T_F((int)temp));
+		else
+			printf("inside temp: %0.2f degrees C\n",(double)convert_to_T_F((int)temp));
+
+/*
+		read(fd,&ch,1);		// read the relay status byte
+
 		if(ch != ch2)
 		{
 			ch2 = ch;
@@ -180,6 +226,7 @@ int main(void)
 			if((ch & 0x08) == 0x08)
 				printf("float charger relay 4 on\n");
 		}
+*/
 		temp = 0;
 	}
 	ch = 0xff;

@@ -27,4 +27,5 @@ void writeCommandTo1620( uint8_t cmd, uint8_t data );
 void writeTempTo1620( uint8_t reg, int temp );
 double readTempFrom1620();
 int readTempFrom1620_int();
+int readTempFrom1620_int2();
 

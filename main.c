@@ -48,6 +48,16 @@ pinout for 2nd DS1620:
 4 - Clk
 5 - Rst
 
+1st DS1620	(ambient)
+#define DS1620_PIN_DQ	PD2
+#define DS1620_PIN_CLK	PD3
+#define DS1620_PIN_RST	PD4
+
+2nd DS1620	(inside box)
+#define DS1620_PIN_DQ	PD5
+#define DS1620_PIN_CLK	PD6
+#define DS1620_PIN_RST	PD7
+
 */
 #include <avr/io.h>
 #include<avr/interrupt.h>
@@ -64,7 +74,6 @@ pinout for 2nd DS1620:
 #include <stdio.h>
 #include <stdlib.h>
 
-
 void heater_relay(int port, int onoff);
 void float_relay(UCHAR mask);
 
@@ -79,7 +88,6 @@ void float_relay(UCHAR mask);
 #define HEAT_RELAY2 PB1
 #define HEAT_RELAY3 PB2
 #define LED PB5
-
 
 volatile int dc2;
 volatile UCHAR xbyte;
@@ -98,16 +106,17 @@ ISR(TIMER1_OVF_vect)
 int main(void)
 {
 	UINT temp;
-	int raw_data1;
-	int raw_data2;
+	int raw_data1, raw_data2;
 	// hex values 0x2b = 70.7F
 	// and 0x31 = 76.1F
-	int high_temp, low_temp;
+	int high_temp, low_temp, low_temp2, low_temp3;
 	UINT mask, utemp, utemp2;
 	int dc3;
 	int i;
-	low_temp = 0x002b;
-	high_temp = 0x0031;
+	high_temp = 0x0036;		// all heat strips off at 80F
+	low_temp = 0x002e;		// heat strip 1 on at 73F
+	low_temp2 = 0x0026;		// heat strin 2 on at 66F
+	low_temp3 = 0x001e;		// heat strin 2 on at 59F
 	UCHAR rec;
 	UCHAR main_loop_delay_param = 15;
 	UCHAR second_loop_delay_param = 10;
@@ -175,6 +184,8 @@ int main(void)
 
 	_delay_ms(1);
 	init1620();
+	_delay_ms(1);
+	init1620_2();
 
 	raw_data1 = 0x002c;
 	raw_data2 = 0x002c;
@@ -191,7 +202,7 @@ int main(void)
 	while(1)
 	{	
 //		if(dc2 > main_loop_delay_param)
-if(dc2 > 10)
+if(dc2 > 20)
 		{
 			dc2 = 0;
 			raw_data1 = readTempFrom1620_int();
@@ -205,11 +216,8 @@ if(dc2 > 10)
 			xbyte = (UCHAR)temp;
 			transmitByte(xbyte);
 
-			//  temp2 is temp probe inside box
-
-			_delay_ms(10);
-			raw_data2 = readTempFrom1620_int2();
-//			raw_data2 += (int)inside_offset_param;
+			raw_data2 = readTempFrom1620_int_2();
+//			raw_data1 += (int)ambient_offset_param;
 			temp = (UINT)raw_data2;
 			temp >>= 8;
 			xbyte = (UCHAR)temp;
@@ -218,8 +226,9 @@ if(dc2 > 10)
 			temp = (UINT)raw_data2;
 			xbyte = (UCHAR)temp;
 			transmitByte(xbyte);
+
 			_delay_ms(10);
-#if 0
+
 			// format 3rd byte sent to serial port 
 			// as XHHHFFFF where H = heat strips and F = float relays
 			utemp = FLOAT_RELAY_PORT;
@@ -229,26 +238,24 @@ if(dc2 > 10)
 			utemp2 &= 0xF0;
 			utemp |= utemp2;
 			utemp = ~utemp;
-//			transmitByte(utemp);
+			transmitByte(utemp);
 
 			if(raw_data2 > high_temp)
 			{
 				heater_relay(0,0);
-//				HEAT_RELAY_PORT &= ~(1 << LED);		// LED only shows if heat strip 1 is on
 			}
 			else if(raw_data2 < low_temp)
 			{
 				heater_relay(0,1);
-//				HEAT_RELAY_PORT |= (1 << LED);
 			}
 
-			if(raw_data2 < 0x0025)
-				heater_relay(1,1);					// if temp < 65F then turn on
+			if(raw_data2 < low_temp2)
+				heater_relay(1,1);					// if temp < low_temp2 then turn on
 			else									// 2nd heat strip
 				heater_relay(1,0);
 
-			if(raw_data2 < 0x001A)
-				heater_relay(2,1);					// if temp < 55F then turn on
+			if(raw_data2 < low_temp3)
+				heater_relay(2,1);					// if temp < low_temp3 then turn on
 			else									// 3rd heat strip
 				heater_relay(2,0);
 			// switch float charge relays every 10 min.
@@ -261,7 +268,6 @@ if(dc2 > 10)
 				if(mask == 0x0010)
 					mask = 1;
 			}
-#endif
 		}
 	}
 	return (0);		// this should never happen

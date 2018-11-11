@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 		else
 			printf("inside temp: %0.2f degrees C\n",(double)convert_to_T_F((int)temp));
 
-/*
+
 		read(fd,&ch,1);		// read the relay status byte
 
 		if(ch != ch2)
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
 			if((ch & 0x08) == 0x08)
 				printf("float charger relay 4 on\n");
 		}
-*/
+
 		temp = 0;
 	}
 	ch = 0xff;

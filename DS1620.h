@@ -21,11 +21,21 @@
 #define DS1620_CMD_WRITECONF	0x0C
 #define DS1620_CMD_READCONF		0xAC
 
+#define DS1620_PORT		PORTD
+#define DS1620_DDR		DDRD
+#define DS1620_PIN		PIND
+
 void init1620();
 void writeByteTo1620( uint8_t cmd );
 void writeCommandTo1620( uint8_t cmd, uint8_t data );
 void writeTempTo1620( uint8_t reg, int temp );
 double readTempFrom1620();
 int readTempFrom1620_int();
-int readTempFrom1620_int2();
+
+void init1620_2();
+void writeByteTo1620_2( uint8_t cmd );
+void writeCommandTo1620_2( uint8_t cmd, uint8_t data );
+void writeTempTo1620_2( uint8_t reg, int temp );
+double readTempFrom1620_2();
+int readTempFrom1620_int_2();
 

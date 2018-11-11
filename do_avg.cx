@@ -1,0 +1,70 @@
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int do_avg(int *avg_array, int cur);
+
+#define AVG_SIZE 10
+
+static int avg1[AVG_SIZE];
+static int avg2[AVG_SIZE];
+
+int main(int arc, char *argv[])
+{
+	int i,j;
+	printf("arc: %d\n",arc);
+	if(arc != AVG_SIZE+1)
+	{
+		printf("args must be 10\n");
+		exit(1);
+	}
+//	printf("%s %s %s\n",argv[0],argv[1],argv[2]);
+
+	memset(avg1,0,sizeof(avg1));
+	for(i = 0;i < arc-1;i++)
+	{
+		avg1[i] = atoi(argv[i+1]);
+//		printf("%d ",avg1[i]);
+	}	
+	printf("\n");
+	for(i = 1;i < AVG_SIZE+1;i++)
+	{
+/*
+		for(j = 0;j < AVG_SIZE;j++)
+			printf("%d ",avg1[j]);
+		printf("\n");
+*/
+		printf("%d ",do_avg(avg1,i));
+		printf("\n");
+	}
+	return 0;
+}
+
+
+int do_avg(int *avg_array, int cur)
+{
+	int i;
+	int avg;
+	avg = 0;
+	
+	for(i = 0;i < AVG_SIZE;i++)
+		printf("%02d ",avg_array[i]);
+
+	printf("\n");
+
+	for(i = 0;i < AVG_SIZE-1;i++)
+		avg_array[i] = avg_array[i+1];
+
+	avg_array[AVG_SIZE-1] = cur;	
+
+	for(i = 0;i < AVG_SIZE;i++)
+		printf("%02d ",avg_array[i]);
+
+	printf("\n");
+
+	for(i = 0;i < AVG_SIZE;i++)
+		avg += avg_array[i];
+
+	return avg/AVG_SIZE;
+}
+

@@ -28,14 +28,11 @@ typedef unsigned char UCHAR;
 typedef unsigned int UINT;
 UCHAR f_or_c = 1;	// gets F degrees
 
-
-
 float convert_to_T_F(int raw_data);
 
 int set_interface_attribs (int fd, int speed, int parity);
 void set_blocking (int fd, int should_block);
 
-//volatile int STOP=FALSE;
 
 /*********************************************************************************/
 int set_interface_attribs (int fd, int speed, int parity)
@@ -112,7 +109,7 @@ int main(int argc, char *argv[])
 	UCHAR row, col;
 	UINT temp, temp2;
 	UCHAR param1, param2, param3, param4;
-
+/*
 	if(argc < 5)
 	{
 		printf("usage: %s <main_loop_time_delay> <second_loop_time_delay> <ambient_offset_param> <inside_offset_param> [1 for C, 0 for F]\n",argv[0]);
@@ -126,7 +123,7 @@ int main(int argc, char *argv[])
 
 	if(argc == 6)
 		f_or_c = atoi(argv[5]);
-
+*/
 	if(f_or_c == 0)
 		printf("output is in C\n");
 	else printf("output is in F\n");
@@ -152,21 +149,6 @@ int main(int argc, char *argv[])
 	set_interface_attribs (fd, BAUDRATE, 0);
 	set_blocking (fd, 1);
 
-	res2 = 0;
-	ch = '*';
-	j = 1;
-	printf("\n");
-	j = 0;
-/*
-	write(fd,&param1,1);
-	usleep(10000);
-	write(fd,&param2,1);
-	usleep(10000);
-	write(fd,&param3,1);
-	usleep(10000);
-	write(fd,&param4,1);
-	usleep(10000);
-*/
 	printf("\n\nwaiting for the DS1620's to send data...\n");
 
 	i = 0;
@@ -252,5 +234,3 @@ float convert_to_T_F(int raw_data)
 	}
 	else return(T_celcius);	// returns 125 -> -55
 }
-
-

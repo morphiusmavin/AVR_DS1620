@@ -76,6 +76,7 @@ pinout for 2nd DS1620:
 
 void heater_relay(int port, int onoff);
 void float_relay(UCHAR mask);
+int do_avg(int *avg_array, int cur);
 
 // relays for switching float charger are PC0->PC3
 #define FLOAT_RELAY_PORT PORTC
@@ -88,9 +89,12 @@ void float_relay(UCHAR mask);
 #define HEAT_RELAY2 PB1
 #define HEAT_RELAY3 PB2
 #define LED PB5
+#define AVG_SIZE 10
 
 volatile int dc2;
 volatile UCHAR xbyte;
+static int avg1[AVG_SIZE];
+static int avg2[AVG_SIZE];
 
 ISR(TIMER1_OVF_vect) 
 { 
@@ -117,11 +121,8 @@ int main(void)
 	low_temp = 0x002e;		// heat strip 1 on at 73F
 	low_temp2 = 0x0026;		// heat strin 2 on at 66F
 	low_temp3 = 0x001e;		// heat strin 2 on at 59F
-	UCHAR rec;
-	UCHAR main_loop_delay_param = 15;
-	UCHAR second_loop_delay_param = 10;
-	UCHAR ambient_offset_param = 0;
-	UCHAR inside_offset_param = 0;
+	UCHAR main_loop_delay = 30;
+	UCHAR second_loop_delay = 10;
 
 	initUSART();
 
@@ -139,8 +140,6 @@ int main(void)
 	dc2 = 0;
 	dc3 = 0;
 	mask = 1;
-
-	dc3 = 0;
 
 	HEAT_RELAY_PORT = 0xFF;
 	FLOAT_RELAY_PORT = 0xFF;
@@ -180,93 +179,99 @@ int main(void)
 	
 	float_relay(0x08);
 
-	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
-
 	_delay_ms(1);
 	init1620();
 	_delay_ms(1);
 	init1620_2();
 
-	raw_data1 = 0x002c;
-	raw_data2 = 0x002c;
+	raw_data1 = readTempFrom1620_int();
+	raw_data2 = readTempFrom1620_int_2();
 
-/*
-	printf("setting params:\n");
-	main_loop_delay_param = receiveByte();
-	main_loop_delay_param &= 0x7F;
-	second_loop_delay_param = receiveByte();
-	second_loop_delay_param &= 0x7F;
-	ambient_offset_param = receiveByte();
-	inside_offset_param = receiveByte();
-*/
+	for(i = 0;i < AVG_SIZE;i++)
+		avg1[i] = raw_data1;
+
+	for(i = 0;i < AVG_SIZE;i++)
+		avg2[i] = raw_data2;
+
+	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
+
 	while(1)
 	{	
-//		if(dc2 > main_loop_delay_param)
-if(dc2 > 20)
+		if(dc2 % main_loop_delay == 0)
 		{
-			dc2 = 0;
 			raw_data1 = readTempFrom1620_int();
-//			raw_data1 += (int)ambient_offset_param;
-			temp = (UINT)raw_data1;
-			temp >>= 8;
-			xbyte = (UCHAR)temp;
-			transmitByte(xbyte);
-			_delay_ms(1);
-			temp = (UINT)raw_data1;
-			xbyte = (UCHAR)temp;
-			transmitByte(xbyte);
+			raw_data1 = do_avg(avg1,raw_data1);
+			dc3 = dc2;
+
+			if(dc3 % (main_loop_delay * 4) == 0)
+			{
+				temp = (UINT)raw_data1;
+				temp >>= 8;
+				xbyte = (UCHAR)temp;
+				transmitByte(xbyte);
+				_delay_ms(1);
+				temp = (UINT)raw_data1;
+				xbyte = (UCHAR)temp;
+				transmitByte(xbyte);
+			}
+			_delay_ms(50);
 
 			raw_data2 = readTempFrom1620_int_2();
-//			raw_data1 += (int)ambient_offset_param;
-			temp = (UINT)raw_data2;
-			temp >>= 8;
-			xbyte = (UCHAR)temp;
-			transmitByte(xbyte);
-			_delay_ms(1);
-			temp = (UINT)raw_data2;
-			xbyte = (UCHAR)temp;
-			transmitByte(xbyte);
+			raw_data2 = do_avg(avg2,raw_data2);
 
-			_delay_ms(10);
-
-			// format 3rd byte sent to serial port 
-			// as XHHHFFFF where H = heat strips and F = float relays
-			utemp = FLOAT_RELAY_PORT;
-			utemp &= 0x0F;
-			utemp2 = HEAT_RELAY_PORT;
-			utemp2 <<= 4;
-			utemp2 &= 0xF0;
-			utemp |= utemp2;
-			utemp = ~utemp;
-			transmitByte(utemp);
-
-			if(raw_data2 > high_temp)
+			if(dc3 % (main_loop_delay * 4) == 0)
 			{
-				heater_relay(0,0);
-			}
-			else if(raw_data2 < low_temp)
-			{
-				heater_relay(0,1);
+				temp = (UINT)raw_data2;
+				temp >>= 8;
+				xbyte = (UCHAR)temp;
+				transmitByte(xbyte);
+				_delay_ms(1);
+				temp = (UINT)raw_data2;
+				xbyte = (UCHAR)temp;
+				transmitByte(xbyte);
+				// format 3rd byte sent to serial port 
+				// as XHHHFFFF where H = heat strips and F = float relays
+				utemp = FLOAT_RELAY_PORT;
+				utemp &= 0x0F;
+				utemp2 = HEAT_RELAY_PORT;
+				utemp2 <<= 4;
+				utemp2 &= 0xF0;
+				utemp |= utemp2;
+				utemp = ~utemp;
+				transmitByte(utemp);
 			}
 
-			if(raw_data2 < low_temp2)
-				heater_relay(1,1);					// if temp < low_temp2 then turn on
-			else									// 2nd heat strip
-				heater_relay(1,0);
+			_delay_ms(2000);
 
-			if(raw_data2 < low_temp3)
-				heater_relay(2,1);					// if temp < low_temp3 then turn on
-			else									// 3rd heat strip
-				heater_relay(2,0);
-			// switch float charge relays every 10 min.
-			if(++dc3 > second_loop_delay_param)
+			if(dc3 % (main_loop_delay * 4) == 0)
 			{
-				dc3 = 0;
-				float_relay((UCHAR)mask);
-				mask <<= 1;
-				// only do the 1st 4 of PORTB
-				if(mask == 0x0010)
-					mask = 1;
+				if(raw_data2 > high_temp)
+				{
+					heater_relay(0,0);
+				}
+				else if(raw_data2 < low_temp)
+				{
+					heater_relay(0,1);
+				}
+
+				if(raw_data2 < low_temp2)
+					heater_relay(1,1);					// if temp < low_temp2 then turn on
+				else									// 2nd heat strip
+					heater_relay(1,0);
+
+				if(raw_data2 < low_temp3)
+					heater_relay(2,1);					// if temp < low_temp3 then turn on
+				else									// 3rd heat strip
+					heater_relay(2,0);
+				// switch float charge relays every 10 min.
+				if(dc2 % second_loop_delay == 0)
+				{
+					float_relay((UCHAR)mask);
+					mask <<= 1;
+					// only do the 1st 4 of PORTB
+					if(mask == 0x0010)
+						mask = 1;
+				}
 			}
 		}
 	}
@@ -328,3 +333,32 @@ void float_relay(UCHAR mask)
 		break;
 	}
 }
+
+//******************************************************************************************//
+int do_avg(int *avg_array, int cur)
+{
+	int i;
+	int avg;
+	avg = 0;
+	
+	for(i = 0;i < AVG_SIZE;i++)
+		printf("%02d ",avg_array[i]);
+
+	printf("\n");
+
+	for(i = 0;i < AVG_SIZE-1;i++)
+		avg_array[i] = avg_array[i+1];
+
+	avg_array[AVG_SIZE-1] = cur;	
+
+	for(i = 0;i < AVG_SIZE;i++)
+		printf("%02d ",avg_array[i]);
+
+	printf("\n");
+
+	for(i = 0;i < AVG_SIZE;i++)
+		avg += avg_array[i];
+
+	return avg/AVG_SIZE;
+}
+

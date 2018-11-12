@@ -121,8 +121,8 @@ int main(void)
 	low_temp = 0x002e;		// heat strip 1 on at 73F
 	low_temp2 = 0x0026;		// heat strin 2 on at 66F
 	low_temp3 = 0x001e;		// heat strin 2 on at 59F
-	UCHAR main_loop_delay = 30;
-	UCHAR second_loop_delay = 10;
+	UCHAR main_loop_delay = 15;
+	UCHAR second_loop_delay = 20;
 
 	initUSART();
 
@@ -203,7 +203,7 @@ int main(void)
 			raw_data1 = do_avg(avg1,raw_data1);
 			dc3 = dc2;
 
-			if(dc3 % (main_loop_delay * 4) == 0)
+			if(dc3 % (main_loop_delay * 8) == 0)
 			{
 				temp = (UINT)raw_data1;
 				temp >>= 8;
@@ -219,7 +219,7 @@ int main(void)
 			raw_data2 = readTempFrom1620_int_2();
 			raw_data2 = do_avg(avg2,raw_data2);
 
-			if(dc3 % (main_loop_delay * 4) == 0)
+			if(dc3 % (main_loop_delay * 8) == 0)
 			{
 				temp = (UINT)raw_data2;
 				temp >>= 8;
@@ -241,8 +241,6 @@ int main(void)
 				transmitByte(utemp);
 			}
 
-			_delay_ms(2000);
-
 			if(dc3 % (main_loop_delay * 4) == 0)
 			{
 				if(raw_data2 > high_temp)
@@ -263,16 +261,18 @@ int main(void)
 					heater_relay(2,1);					// if temp < low_temp3 then turn on
 				else									// 3rd heat strip
 					heater_relay(2,0);
-				// switch float charge relays every 10 min.
-				if(dc2 % second_loop_delay == 0)
-				{
-					float_relay((UCHAR)mask);
-					mask <<= 1;
-					// only do the 1st 4 of PORTB
-					if(mask == 0x0010)
-						mask = 1;
-				}
 			}
+				// switch float charge relays every 10 min.
+			if(dc3 % (main_loop_delay * 80) == 0)
+			{
+				float_relay((UCHAR)mask);
+				mask <<= 1;
+				// only do the 1st 4 of PORTB
+				if(mask == 0x0010)
+					mask = 1;
+			}
+
+			_delay_ms(5000);
 		}
 	}
 	return (0);		// this should never happen

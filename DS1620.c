@@ -14,6 +14,10 @@
 // Define PORTx, DDRx and PINx here
 // Define individual pins here
 
+#define DS1620_PORT		PORTD
+#define DS1620_DDR		DDRD
+#define DS1620_PIN		PIND
+
 #define DS1620_PIN_DQ	PD2
 #define DS1620_PIN_CLK	PD3
 #define DS1620_PIN_RST	PD4

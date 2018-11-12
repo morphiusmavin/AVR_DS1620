@@ -17,6 +17,8 @@ git add DS1620.txt
 git add README.md
 git add DS1620.c
 git add DS16202.c
+git add DS16203.c
+git add DS16204.c
 git add DS1620.h
 git add test_DS1620.cx
 git status

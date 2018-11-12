@@ -14,24 +14,24 @@
 // Define PORTx, DDRx and PINx here
 // Define individual pins here
 
-#define DS1620_PORT		PORTD
-#define DS1620_DDR		DDRD
-#define DS1620_PIN		PIND
+#define DS1620_PORT		PORTC
+#define DS1620_DDR		DDRC
+#define DS1620_PIN		PINC
 
-#define DS1620_PIN_DQ	PD5
-#define DS1620_PIN_CLK	PD6
-#define DS1620_PIN_RST	PD7
+#define DS1620_PIN_DQ	PD2
+#define DS1620_PIN_CLK	PD3
+#define DS1620_PIN_RST	PD4
 
-void init1620_2()
+void init1620_4()
 {
 	// All pins -> output
 	DS1620_DDR |= (1<< DS1620_PIN_DQ) | (1<< DS1620_PIN_RST) | (1<< DS1620_PIN_CLK);
 	
-	writeCommandTo1620_2( DS1620_CMD_WRITECONF, 0x02 );			// CPU mode; continous conversion
-	writeByteTo1620_2( DS1620_CMD_STARTCONV );					// Start conversion
+	writeCommandTo1620_4( DS1620_CMD_WRITECONF, 0x02 );			// CPU mode; continous conversion
+	writeByteTo1620_4( DS1620_CMD_STARTCONV );					// Start conversion
 }
 
-void shiftOutByte_2( uint8_t val )
+void shiftOutByte_4( uint8_t val )
 {
 	int i;
 	// Send uint8_t, LSB first
@@ -52,47 +52,47 @@ void shiftOutByte_2( uint8_t val )
 	}
 }
 
-void writeByteTo1620_2( uint8_t cmd )
+void writeByteTo1620_4( uint8_t cmd )
 {
 	DS1620_PORT |= (1<< DS1620_PIN_RST );						// start comm - RST high
 	
-	shiftOutByte_2( cmd );
+	shiftOutByte_4( cmd );
 	
 	DS1620_PORT &= ~(1<< DS1620_PIN_RST );						// end comm
 }
 
-void writeCommandTo1620_2( uint8_t cmd, uint8_t data )
+void writeCommandTo1620_4( uint8_t cmd, uint8_t data )
 {
 	DS1620_PORT |= (1<< DS1620_PIN_RST );						// start comm - RST high
 	
-	shiftOutByte_2( cmd );	// send command
-	shiftOutByte_2( data );	// send 8 bit data
+	shiftOutByte_4( cmd );	// send command
+	shiftOutByte_4( data );	// send 8 bit data
 	
 	DS1620_PORT &= ~(1<< DS1620_PIN_RST );						// end comm
 }
 
-void writeTempTo1620_2( uint8_t reg, int temp )
+void writeTempTo1620_4( uint8_t reg, int temp )
 {
 	uint8_t lsb = temp;											// truncate to high uint8_t
 	uint8_t msb = temp >> 8;									// shift high -> low uint8_t
 	
 	DS1620_PORT |= _BV( DS1620_PIN_RST );						// start comm - RST high
 	
-	shiftOutByte_2( reg );	// send register select
-	shiftOutByte_2( lsb );	// send LSB 8 bit data
-	shiftOutByte_2( msb );	// send MSB 8 bit data (only bit 0 is used)
+	shiftOutByte_4( reg );	// send register select
+	shiftOutByte_4( lsb );	// send LSB 8 bit data
+	shiftOutByte_4( msb );	// send MSB 8 bit data (only bit 0 is used)
 	
 	DS1620_PORT &= ~(1<< DS1620_PIN_RST );						// end comm
 }
 
 //double readTempFrom1620()
-double readTempFrom1620_2()
+double readTempFrom1620_4()
 {
 	int i;
 	
 	DS1620_PORT |= (1<< DS1620_PIN_RST );						// start comm - RST high
 	
-	shiftOutByte_2( DS1620_CMD_READTEMP );						// send register select
+	shiftOutByte_4( DS1620_CMD_READTEMP );						// send register select
 	
 	DS1620_DDR &= ~(1<< DS1620_PIN_DQ );						// configure for input
 	
@@ -115,14 +115,14 @@ double readTempFrom1620_2()
 																// as double
 }
 
-int readTempFrom1620_int_2()
+int readTempFrom1620_int_4()
 {
 	int i;
 	
 	DS1620_PORT &= ~(1<< DS1620_PIN_CLK );					// CLK low
 	DS1620_PORT |= (1<< DS1620_PIN_RST );						// start comm - RST high
 	
-	shiftOutByte_2( DS1620_CMD_READTEMP );						// send register select
+	shiftOutByte_4( DS1620_CMD_READTEMP );						// send register select
 	
 	DS1620_DDR &= ~(1<< DS1620_PIN_DQ );						// configure for input
 	

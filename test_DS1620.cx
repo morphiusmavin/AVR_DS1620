@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 	set_interface_attribs (fd, BAUDRATE, 0);
 	set_blocking (fd, 1);
 
-	printf("\n\nwaiting for the DS1620's to send data...\n");
+	printf("waiting for the DS1620's to send data...\n");
 
 	i = 0;
 

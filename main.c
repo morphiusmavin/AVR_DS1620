@@ -40,14 +40,6 @@ DS1620 pinout:
 4 - GND
 8 - VDD
 
-pinout for 2nd DS1620:
-(starting from right)
-1 - Vcc
-2 - Gnd
-3 - Data
-4 - Clk
-5 - Rst
-
 1st DS1620
 #define DS1620_PIN_DQ	PD2
 #define DS1620_PIN_CLK	PD3
@@ -67,6 +59,11 @@ pinout for 2nd DS1620:
 #define DS1620_PIN_DQ	PC0
 #define DS1620_PIN_CLK	PC1
 #define DS1620_PIN_RST	PC2
+
+pinouts on board: (starting from left looking at bottom)
+DQ CLK RST GND VCC (repeat 4x)
+
+(still have 3 pins avail - PC3, and the 2 behind 12,13 & A0 - PC4 & 5)
 
 */
 #include <avr/io.h>
@@ -98,7 +95,7 @@ static int avg4[AVG_SIZE];
 
 ISR(TIMER1_OVF_vect) 
 { 
-	TCNT1 = 0x0002;	// this counts up so the lower, the slower (0xFFFF is the fastest)
+	TCNT1 = 0xBFFF;	// this counts up so the lower, the slower (0xFFFF is the fastest)
 	dc2++;
 	if(dc2 % 2 == 0)
 		PORTB |= (1 << LED);
@@ -115,16 +112,17 @@ int main(void)
 	// and 0x31 = 76.1F
 	int dc3;
 	int i;
-	UCHAR main_loop_delay = 15;
+	UCHAR main_loop_delay = 10;
+	UCHAR xbyte;
 
 	initUSART();
 
 	TCNT1 = 0xFFF0;
 	TCCR1A = 0x00;
-//	TCCR1B = (1<<CS10) | (1<<CS12);  // Timer mode with 1024 prescler
-	TCCR1B = (1<<CS10) | (1<<CS11);	// clk/64
-//	TCCR1B = (1<<CS11);	// clk/8	(see page 144 in datasheet)
-//	TCCR1B = (1<<CS10);	// no prescaling
+	TCCR1B = (1<<CS10) | (1<<CS12);  // Timer mode with 1024 prescler	(very slow)
+//	TCCR1B = (1<<CS10) | (1<<CS11);	// clk/64							(faster)
+//	TCCR1B = (1<<CS11);	// clk/8	(see page 144 in datasheet)			(much faster)
+//	TCCR1B = (1<<CS10);	// no prescaling								(very fast)
 	
 	TIMSK1 = (1 << TOIE1) ;   // Enable timer1 overflow interrupt(TOIE1)
 	dc2 = 0;
@@ -132,13 +130,19 @@ int main(void)
 
 	// flicker the LED
 
-	for(i = 0;i < 10;i++)
+	DDRB |= 0x20;
+	PORTB |= (1 << LED);
+	_delay_ms(1000);
+	for(i = 0;i < 30;i++)
 	{
-		PORTB |= (1 << LED);
-		_delay_ms(50);
 		PORTB &= ~(1 << LED);
 		_delay_ms(50);
+		PORTB |= (1 << LED);
+		_delay_ms(50);
 	}		
+	_delay_ms(1000);
+	PORTB |= (1 << LED);
+	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
 
 	_delay_ms(1);
 	init1620();
@@ -149,6 +153,19 @@ int main(void)
 	_delay_ms(1);
 	init1620_4();
 
+	_delay_ms(10);
+
+/*
+	xbyte = 0x21;
+	while(1)
+	{
+		transmitByte(xbyte);
+
+		if(++xbyte > 0x7d)
+			xbyte = 0x21;
+		_delay_ms(1);
+	}
+*/
 	raw_data1 = readTempFrom1620_int();
 	raw_data2 = readTempFrom1620_int_2();
 	raw_data3 = readTempFrom1620_int_3();
@@ -189,7 +206,7 @@ int main(void)
 				xbyte = (UCHAR)temp;
 				transmitByte(xbyte);
 			}
-			_delay_ms(50);
+			_delay_ms(500);
 
 			raw_data2 = readTempFrom1620_int_2();
 			raw_data2 = do_avg(avg2,raw_data2);
@@ -205,7 +222,7 @@ int main(void)
 				xbyte = (UCHAR)temp;
 				transmitByte(xbyte);
 			}
-			_delay_ms(50);
+			_delay_ms(500);
 
 			raw_data3 = readTempFrom1620_int_3();
 			raw_data3 = do_avg(avg3,raw_data3);
@@ -221,7 +238,7 @@ int main(void)
 				xbyte = (UCHAR)temp;
 				transmitByte(xbyte);
 			}
-			_delay_ms(50);
+			_delay_ms(500);
 
 			raw_data4 = readTempFrom1620_int_4();
 			raw_data4 = do_avg(avg2,raw_data4);

@@ -100,14 +100,12 @@ void set_blocking (int fd, int should_block)
 /*********************************************************************************/
 int main(int argc, char *argv[])
 {
-	int fd,c, res, res2;
-	int i,j;
-	int ret;
-	UCHAR ch, ch2;
+	int fd;
+	int i;
+	UCHAR ch; 
 	char str[100];
 	struct termios oldtio,newtio;
 	memset(&newtio, 0, sizeof newtio);
-	UCHAR row, col;
 	UINT temp, temp2;
 	UCHAR param1, param2, param3, param4;
 	char filename[20];
@@ -131,8 +129,11 @@ int main(int argc, char *argv[])
 	memset(str,0,sizeof(str));
 	fptr = (char *)filename;
 	fp = open((const char *)fptr, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-	sprintf(str,"%s %d\n",filename,f_or_c);
-	write(fp,(const char *)str,strlen(str));
+
+	gettimeofday(&mtv, NULL);
+	curtime2 = mtv.tv_sec;
+	strftime((char*)&time_buffer[0],30,"%m-%d-%Y %T\n",localtime(&curtime2));
+	write(fp,(const void*)time_buffer,strlen(time_buffer));
 	close(fp);
 
 	fd = open (MODEMDEVICE, O_RDWR | O_NOCTTY | O_SYNC);
@@ -153,94 +154,84 @@ int main(int argc, char *argv[])
 
 	i = 0;
 
-
-	j = 0;
-//	printf("fp = %d\n",fp);
-//	printf("seek=%lu\n",lseek(fp,0,SEEK_SET));
-
-	gettimeofday(&mtv, NULL);
-	curtime2 = mtv.tv_sec;
-	strftime((char*)&time_buffer[0],30,"%m-%d-%Y %T\n",localtime(&curtime2));
-	write_file(filename, str);
-
 	while(1)
 	{
-		read(fd,&ch,1);
-		temp = (unsigned int)ch;
-		temp <<= 8;
-	//	printf("%02x ",temp);
-		read(fd,&ch,1);
-		temp2 = (unsigned int)ch;
-	//	printf("%02x ",temp2);
-		temp |= (unsigned int)temp2;
-	//	printf("%02x %d\n",temp,temp);
-//		printf("%02x ",temp);
-		fres =  convert_to_T_F((int)temp);
-
 		gettimeofday(&mtv, NULL);
 		curtime2 = mtv.tv_sec;
 		strftime((char*)&time_buffer[0],30,"%m-%d-%Y %T ",localtime(&curtime2));
-		memcpy(time_buffer,time_buffer+11,8);
-		time_buffer[9] = 0;
-		strcat(time_buffer,"\n");
+//		memcpy(time_buffer,time_buffer+10,7);
+//		time_buffer[9] = 0;
+//		strcat(time_buffer,": ");
 
 		write_file(filename, time_buffer);
 		printf("%s ",time_buffer);
 
+		read(fd,&ch,1);
+		temp = (UINT)ch;
+		temp <<= 8;
+	//	printf("%02x ",temp);
+		read(fd,&ch,1);
+		temp2 = (UINT)ch;
+	//	printf("%02x ",temp2);
+		temp |= (UINT)temp2;
+	//	printf("%02x %d\n",temp,temp);
+//		printf("%02x ",temp);
+		fres =  convert_to_T_F((int)temp);
+
 		memset(str,0,sizeof(str));
 		if(f_or_c == 1)
-			sprintf(str,"temp 1: %0.2fF ",(double)fres);
+			sprintf(str,"1: %0.2fF ",(double)fres);
 		else
-			sprintf(str,"temp 2: %0.2fC ",(double)fres);
+			sprintf(str,"2: %0.2fC ",(double)fres);
 
 		printf("%s",str);
 		write_file(filename, str);
 
 		read(fd,&ch,1);
-		temp = (unsigned int)ch;
+		temp = (UINT)ch;
 		temp <<= 8;
 		read(fd,&ch,1);
-		temp2 = (unsigned int)ch;
-		temp |= (unsigned int)temp2;
+		temp2 = (UINT)ch;
+		temp |= (UINT)temp2;
 
 		fres = convert_to_T_F((int)temp);
 		memset(str,0,sizeof(str));
 		if(f_or_c == 1)
-			sprintf(str, "temp 2: %0.2fF ",(double)fres);
+			sprintf(str, "2: %0.2fF ",(double)fres);
 		else
-			sprintf(str, "temp 2: %0.2fC ",(double)fres);
+			sprintf(str, "2: %0.2fC ",(double)fres);
 		printf("%s",str);
 		write_file(filename, str);
 
 		read(fd,&ch,1);
-		temp = (unsigned int)ch;
+		temp = (UINT)ch;
 		temp <<= 8;
 		read(fd,&ch,1);
-		temp2 = (unsigned int)ch;
-		temp |= (unsigned int)temp2;
+		temp2 = (UINT)ch;
+		temp |= (UINT)temp2;
 
 		fres = convert_to_T_F((int)temp);
 		memset(str,0,sizeof(str));
 		if(f_or_c == 1)
-			sprintf(str, "temp 3: %0.2fF ",(double)fres);
+			sprintf(str, "3: %0.2fF ",(double)fres);
 		else
-			sprintf(str, "temp 3: %0.2fC ",(double)fres);
+			sprintf(str, "3: %0.2fC ",(double)fres);
 		printf("%s",str);
 		write_file(filename, str);
 
 		read(fd,&ch,1);
-		temp = (unsigned int)ch;
+		temp = (UINT)ch;
 		temp <<= 8;
 		read(fd,&ch,1);
-		temp2 = (unsigned int)ch;
-		temp |= (unsigned int)temp2;
+		temp2 = (UINT)ch;
+		temp |= (UINT)temp2;
 
 		fres = convert_to_T_F((int)temp);
 		memset(str,0,sizeof(str));
 		if(f_or_c == 1)
-			sprintf(str, "temp 4: %0.2fF \n",(double)fres);
+			sprintf(str, "4: %0.2fF \n",(double)fres);
 		else
-			sprintf(str, "temp 4: %0.2fC \n",(double)fres);
+			sprintf(str, "4: %0.2fC \n",(double)fres);
 		printf("%s",str);
 		write_file(filename, str);
 

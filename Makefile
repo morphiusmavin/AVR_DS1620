@@ -4,8 +4,8 @@
 ##########------------------------------------------------------##########
 
 MCU   = atmega328p
-F_CPU = 8200000UL	#this works on the first one
-#F_CPU = 16000000UL  
+#F_CPU = 8200000UL	#this works on the first one
+F_CPU = 16000000UL  
 BAUD  = 19200UL
 ## Also try BAUD = 19200 or 38400 if you're feeling lucky.
 

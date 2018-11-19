@@ -64,7 +64,11 @@ pinouts on board: (starting from left looking at bottom)
 DQ CLK RST GND VCC (repeat 4x)
 
 (still have 3 pins avail - PC3, and the 2 behind 12,13 & A0 - PC4 & 5)
-
+red 5v
+org gnd
+org/wh rst
+blu clk
+blu/wh data
 */
 #include <avr/io.h>
 #include<avr/interrupt.h>
@@ -112,7 +116,7 @@ int main(void)
 	// and 0x31 = 76.1F
 	int dc3;
 	int i;
-	UCHAR main_loop_delay = 10;
+	UCHAR main_loop_delay = 5;
 	UCHAR xbyte;
 
 	initUSART();
@@ -133,7 +137,7 @@ int main(void)
 	DDRB |= 0x20;
 	PORTB |= (1 << LED);
 	_delay_ms(1000);
-	for(i = 0;i < 30;i++)
+	for(i = 0;i < 10;i++)
 	{
 		PORTB &= ~(1 << LED);
 		_delay_ms(50);
@@ -154,7 +158,6 @@ int main(void)
 	init1620_4();
 
 	_delay_ms(10);
-
 /*
 	xbyte = 0x21;
 	while(1)
@@ -184,6 +187,46 @@ int main(void)
 		avg4[i] = raw_data4;
 
 	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
+
+	temp = (UINT)raw_data1;
+	temp >>= 8;
+	xbyte = (UCHAR)temp;
+	transmitByte(xbyte);
+	_delay_ms(1);
+	temp = (UINT)raw_data1;
+	xbyte = (UCHAR)temp;
+	transmitByte(xbyte);
+	_delay_ms(10);
+
+	temp = (UINT)raw_data2;
+	temp >>= 8;
+	xbyte = (UCHAR)temp;
+	transmitByte(xbyte);
+	_delay_ms(1);
+	temp = (UINT)raw_data2;
+	xbyte = (UCHAR)temp;
+	transmitByte(xbyte);
+	_delay_ms(10);
+
+	temp = (UINT)raw_data3;
+	temp >>= 8;
+	xbyte = (UCHAR)temp;
+	transmitByte(xbyte);
+	_delay_ms(1);
+	temp = (UINT)raw_data3;
+	xbyte = (UCHAR)temp;
+	transmitByte(xbyte);
+	_delay_ms(10);
+
+	temp = (UINT)raw_data4;
+	temp >>= 8;
+	xbyte = (UCHAR)temp;
+	transmitByte(xbyte);
+	_delay_ms(1);
+	temp = (UINT)raw_data4;
+	xbyte = (UCHAR)temp;
+	transmitByte(xbyte);
+	_delay_ms(10);
 
 	while(1)
 	{	
@@ -241,7 +284,7 @@ int main(void)
 			_delay_ms(500);
 
 			raw_data4 = readTempFrom1620_int_4();
-			raw_data4 = do_avg(avg2,raw_data4);
+			raw_data4 = do_avg(avg4,raw_data4);
 
 			if(dc3 % (main_loop_delay) == 0)
 			{

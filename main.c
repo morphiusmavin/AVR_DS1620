@@ -88,7 +88,7 @@ blu/wh data
 int do_avg(int *avg_array, int cur);
 
 #define LED PB5
-#define AVG_SIZE 10
+#define AVG_SIZE 5
 
 volatile int dc2;
 volatile UCHAR xbyte;
@@ -101,10 +101,12 @@ ISR(TIMER1_OVF_vect)
 { 
 	TCNT1 = 0xBFFF;	// this counts up so the lower, the slower (0xFFFF is the fastest)
 	dc2++;
+/*
 	if(dc2 % 2 == 0)
 		PORTB |= (1 << LED);
 	else
 		PORTB &= ~(1 << LED);
+*/
 }
 
 //******************************************************************************************//
@@ -116,7 +118,7 @@ int main(void)
 	// and 0x31 = 76.1F
 	int dc3;
 	int i;
-	UCHAR main_loop_delay = 5;
+	UCHAR main_loop_delay = 4;
 	UCHAR xbyte;
 
 	initUSART();
@@ -169,10 +171,28 @@ int main(void)
 		_delay_ms(1);
 	}
 */
+
+	writeByteTo1620( DS1620_CMD_STARTCONV );
 	raw_data1 = readTempFrom1620_int();
+	writeByteTo1620(DS1620_CMD_STOPCONV);
+
+	_delay_ms(10);
+
+	writeByteTo1620_2( DS1620_CMD_STARTCONV );
 	raw_data2 = readTempFrom1620_int_2();
+	writeByteTo1620_2(DS1620_CMD_STOPCONV);
+
+	_delay_ms(10);
+
+	writeByteTo1620_3( DS1620_CMD_STARTCONV );
 	raw_data3 = readTempFrom1620_int_3();
+	writeByteTo1620_3(DS1620_CMD_STOPCONV);
+
+	_delay_ms(10);
+
+	writeByteTo1620_4( DS1620_CMD_STARTCONV );
 	raw_data4 = readTempFrom1620_int_4();
+	writeByteTo1620_4(DS1620_CMD_STOPCONV);
 
 	for(i = 0;i < AVG_SIZE;i++)
 		avg1[i] = raw_data1;
@@ -228,16 +248,21 @@ int main(void)
 	transmitByte(xbyte);
 	_delay_ms(10);
 
+
 	while(1)
 	{	
 		if(dc2 % main_loop_delay == 0)
 		{
-			_delay_ms(50);
-
-			raw_data1 = readTempFrom1620_int();
-			raw_data1 = do_avg(avg1,raw_data1);
+			_delay_ms(500);
 			dc3 = dc2;
 
+			writeByteTo1620( DS1620_CMD_STARTCONV );
+			PORTB |= (1 << LED);
+			raw_data1 = readTempFrom1620_int();
+			PORTB &= ~(1 << LED);
+			writeByteTo1620(DS1620_CMD_STOPCONV);
+//			raw_data1 = do_avg(avg1,raw_data1);
+
 			if(dc3 % (main_loop_delay) == 0)
 			{
 				temp = (UINT)raw_data1;
@@ -251,8 +276,12 @@ int main(void)
 			}
 			_delay_ms(500);
 
+			writeByteTo1620_2( DS1620_CMD_STARTCONV );
+			PORTB |= (1 << LED);
 			raw_data2 = readTempFrom1620_int_2();
-			raw_data2 = do_avg(avg2,raw_data2);
+			PORTB &= ~(1 << LED);
+			writeByteTo1620_2(DS1620_CMD_STOPCONV);
+//			raw_data2 = do_avg(avg2,raw_data2);
 
 			if(dc3 % (main_loop_delay) == 0)
 			{
@@ -267,8 +296,12 @@ int main(void)
 			}
 			_delay_ms(500);
 
+			writeByteTo1620_3( DS1620_CMD_STARTCONV );
+			PORTB |= (1 << LED);
 			raw_data3 = readTempFrom1620_int_3();
-			raw_data3 = do_avg(avg3,raw_data3);
+			PORTB &= ~(1 << LED);
+			writeByteTo1620_3(DS1620_CMD_STOPCONV);
+//			raw_data3 = do_avg(avg3,raw_data3);
 
 			if(dc3 % (main_loop_delay) == 0)
 			{
@@ -283,8 +316,12 @@ int main(void)
 			}
 			_delay_ms(500);
 
+			writeByteTo1620_4( DS1620_CMD_STARTCONV );
+			PORTB |= (1 << LED);
 			raw_data4 = readTempFrom1620_int_4();
-			raw_data4 = do_avg(avg4,raw_data4);
+			PORTB &= ~(1 << LED);
+			writeByteTo1620_4(DS1620_CMD_STOPCONV);
+//			raw_data4 = do_avg(avg4,raw_data4);
 
 			if(dc3 % (main_loop_delay) == 0)
 			{

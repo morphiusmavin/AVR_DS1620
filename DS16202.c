@@ -26,9 +26,8 @@ void init1620_2()
 {
 	// All pins -> output
 	DS1620_DDR |= (1<< DS1620_PIN_DQ) | (1<< DS1620_PIN_RST) | (1<< DS1620_PIN_CLK);
-	
 	writeCommandTo1620_2( DS1620_CMD_WRITECONF, 0x02 );			// CPU mode; continous conversion
-	writeByteTo1620_2( DS1620_CMD_STARTCONV );					// Start conversion
+//	writeByteTo1620_2( DS1620_CMD_STARTCONV );					// Start conversion
 }
 
 void shiftOutByte_2( uint8_t val )

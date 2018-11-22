@@ -1,1 +1,3 @@
-sudo avrdude -c buspirate -C avrdude.conf +atmega328p.conf -P /dev/ttyUSB0 -p m328p $1 $2 $3
+#don't need conf files as long as there is either a ~/.avrduderc or /etc/avrdude.conf
+#sudo avrdude -c buspirate -C avrdude.conf  +atmega328p.conf -P /dev/ttyUSB0 -p m328p $1 $2 $3
+sudo avrdude -c buspirate -P /dev/ttyUSB0 -p m328p $1 $2 $3

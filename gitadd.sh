@@ -1,8 +1,6 @@
 git add macros.h
-git add atmega328p.conf
 git add main.c
 git add README.md
-git add avrdude.conf
 git add run-avrdude
 git add Makefile
 git add USART.c

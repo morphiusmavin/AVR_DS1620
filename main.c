@@ -91,12 +91,12 @@ int conv1(void);
 int conv2(void);
 int conv3(void);
 int conv4(void);
+void transmitPreamble(void);
 
 #define LED PB5
 #define AVG_SIZE 4
 
 volatile int dc2;
-volatile UCHAR xbyte;
 static int avg1[AVG_SIZE];
 static int avg2[AVG_SIZE];
 static int avg3[AVG_SIZE];
@@ -119,12 +119,12 @@ int main(void)
 {
 //	UINT temp;
 	int raw_data1, raw_data2, raw_data3, raw_data4;
+//	UCHAR xbyte;
 	// hex values 0x2b = 70.7F
 	// and 0x31 = 76.1F
 	int dc3;
 	int i;
 	UCHAR main_loop_delay = 10;
-//	UCHAR xbyte;
 
 	initUSART();
 
@@ -166,17 +166,15 @@ int main(void)
 
 	_delay_ms(10);
 /*
-	xbyte = 0x21;
-	while(1)
+	xbyte = 0x4b;
+	do
 	{
-		transmitByte(xbyte);
+		transmitByte(0);
+		transmitByte(xbyte--);
 
-		if(++xbyte > 0x7d)
-			xbyte = 0x21;
-		_delay_ms(1);
-	}
+		_delay_ms(20);
+	}while(xbyte > 1);
 */
-
 	writeByteTo1620( DS1620_CMD_STARTCONV );
 	raw_data1 = readTempFrom1620_int();
 	writeByteTo1620(DS1620_CMD_STOPCONV);
@@ -213,6 +211,9 @@ int main(void)
 
 	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
 
+
+	transmitPreamble();
+
 	transmit(raw_data1);
 	_delay_ms(10);
 
@@ -227,33 +228,43 @@ int main(void)
 
 	while(1)
 	{	
-		if(dc2 % main_loop_delay == 0)
+		if(dc2 % main_loop_delay == 4)
 		{
 			_delay_ms(500);
 			dc3 = dc2;
 
-			raw_data1 = conv1();
 
-			if(dc3 % (main_loop_delay) == 0)
+			transmitPreamble();
+
+			if(dc3 % (main_loop_delay) == 4)
+			{
+				raw_data1 = conv1();
 				transmit(raw_data1);
+			}
 			_delay_ms(500);
 
-			raw_data2 = conv2();
 
-			if(dc3 % (main_loop_delay) == 0)
+			if(dc3 % (main_loop_delay) == 4)
+			{
+				raw_data2 = conv2();
 				transmit(raw_data2);
+			}
 			_delay_ms(500);
 
-			raw_data3 = conv3();
 
-			if(dc3 % (main_loop_delay) == 0)
+			if(dc3 % (main_loop_delay) == 4)
+			{
+				raw_data3 = conv3();
 				transmit(raw_data3);
+			}
 			_delay_ms(500);
 
-			raw_data4 = conv4();
 
-			if(dc3 % (main_loop_delay) == 0)
+			if(dc3 % (main_loop_delay) == 4)
+			{
+				raw_data4 = conv4();
 				transmit(raw_data4);
+			}
 		}
 	}
 	return 0;
@@ -291,6 +302,7 @@ int do_avg(int *avg_array, int cur)
 void transmit(int raw_data)
 {
 	int temp;
+	UCHAR xbyte;
 	temp = (UINT)raw_data;
 	temp >>= 8;
 	xbyte = (UCHAR)temp;
@@ -352,4 +364,11 @@ int conv4(void)
 	raw_data = do_avg(avg4,raw_data);
 	return raw_data;
 }
-
+//******************************************************************************************//
+void transmitPreamble(void)
+{
+	transmitByte(0xFF);
+	transmitByte(0xFF);
+	transmitByte(0);
+	transmitByte(0);
+}

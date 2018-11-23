@@ -1,0 +1,35 @@
+##############################################Core3S500E#################################################
+#note: the Vcc to the chip is 5v but all the other IO is 3v3
+
+NET		"clk"	LOC = "P184" ;
+NET		"reset"	LOC = "P101" ;
+
+# this turns the 'strange error' to a warning
+NET "reset" CLOCK_DEDICATED_ROUTE = FALSE;
+
+NET		"tx_uart"		LOC = "P77";
+NET		"rx_ds1620"		LOC = "P75";
+
+# led1 is the build-in LED's on the board
+NET		"led1[0]"	LOC = "p68";
+NET		"led1[1]"	LOC = "p78";
+NET		"led1[2]"	LOC = "p83";
+NET		"led1[3]"	LOC = "p89";
+
+# lower right pins looking at bottom of board
+#	.		.
+#	.		.
+#	.		.
+#	36		35
+#	5v		gnd
+#	40		39
+#	42		41
+#	47		45
+#	49		48
+#	55		50
+#	61		60
+#	63		62
+#	65		64
+#	74		69
+#	76		75
+#	82		77

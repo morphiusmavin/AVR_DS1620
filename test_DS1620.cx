@@ -166,6 +166,35 @@ int main(int argc, char *argv[])
 		write_file(filename, time_buffer);
 		printf("%s ",time_buffer);
 
+		// read preamble of 0xFFFF0000
+		do{
+			read(fd,&ch,1);
+			i++;
+		}while(ch != 0xff);
+
+//		printf("past 1st pre\n");
+		i = 0;
+		do{
+			read(fd,&ch,1);
+			i++;
+		}while(ch != 0xff);
+
+//		printf("past 2nd pre\n");
+		i = 0;
+		do{
+			read(fd,&ch,1);
+			i++;
+		}while(ch != 0);
+
+//		printf("past 3rd pre\n");
+		i = 0;
+		do{
+			read(fd,&ch,1);
+			i++;
+		}while(ch != 0);
+
+//		printf("past last preamble\n");
+
 		read(fd,&ch,1);
 		temp = (UINT)ch;
 		temp <<= 8;

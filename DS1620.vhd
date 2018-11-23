@@ -21,13 +21,16 @@ end DS1620;
 
 architecture DS1620_arch of DS1620 is
 
-	type state_uart2 is (idle2, start2, next2, done2);
+	type state_uart2 is (idle2, start2, next2, next3, done2);
 	signal state_uart_reg2, state_uart_next2: state_uart2;
-
+	signal time_delay_reg, time_delay_next: unsigned(24 downto 0);
+	
 	signal data_rx: std_logic_vector(7 downto 0);
 	signal done_rx: std_logic;
 	signal rx_uart: std_logic;
 	signal start_rx: std_logic;
+--	signal test_raw: signed(15 downto 0);
+	signal skip: std_logic;
 begin
 
 rx_uart_wrapper_unit: entity work.uartLED2(str_arch)
@@ -46,11 +49,13 @@ begin
 		state_uart_next2 <= idle2;
 		start_rx <= '0';
 		done <= '0';
+		time_delay_reg <= (others=>'0');
+		time_delay_next <= (others=>'0');
+		raw_data <= (others=>'0');
 
 	else if clk'event and clk = '1' then
 		case state_uart_reg2 is
 			when idle2 =>
-				start_rx <= '0';
 				done <= '0';
 				if start = '1' then
 					start_rx <= '1';
@@ -60,24 +65,27 @@ begin
 			when start2 =>
 				start_rx <= '0';
 				if done_rx = '1' then
-					raw_data(7 downto 0) <= data_rx;
+					raw_data(15 downto 8) <= data_rx;
 					state_uart_next2 <= next2;
-				end if;	
+				end if;
 
 			when next2 =>
 				start_rx <= '1';
-				state_uart_next2 <= done2;
-			
-			when done2 =>
+				state_uart_next2 <= next3;
+
+			when next3 =>
 				start_rx <= '0';
 				if done_rx = '1' then
-					raw_data(15 downto 8) <= data_rx;
+					raw_data(7 downto 0) <= data_rx;
+					state_uart_next2 <= done2;
 					done <= '1';
-					state_uart_next2 <= idle2;
 				end if;
+			when done2 =>
+				state_uart_next2 <= idle2;
 
 		end case;
 		state_uart_reg2 <= state_uart_next2;
+		time_delay_reg <= time_delay_next;
 		end if;
 	end if;
 end process;

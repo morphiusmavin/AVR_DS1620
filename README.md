@@ -2,8 +2,8 @@
 Program that runs on AVR ProMini to send temp readings from (4) DS1620 sensors to a<br />
 Xilinx Spartan-3E over serial port.<br />
 The program: test_DS1620.cx is compiled on a linux box to read the output from the serial<br />
-port of the AVR and spits out the ambient and inside temps plus if anything changes as far<br />
-as the relays and also records to a text file.<br />
+port of the AVR and spits out the time with the 4 readings<br />
+<br />
 <h2>AVR Pinout</h2>
 1st DS1620<br />
 DS1620_PIN_DQ	PD2<br />
@@ -26,4 +26,3 @@ DS1620_PIN_CLK	PC1<br />
 DS1620_PIN_RST	PC2<br />
 <br />
 credit to: Jens Willy Johannsen on code for DS1620<br />
-pictures at: https://batterybox.shutterfly.com<br />

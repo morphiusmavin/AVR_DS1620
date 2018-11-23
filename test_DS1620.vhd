@@ -25,7 +25,6 @@ entity test_DS1620 is
 		clk, reset: in std_logic;
 		tx_uart: out std_logic;
 		rx_ds1620: in std_logic;
-		raw_data: out std_logic_vector(15 downto 0);
 		led1: out std_logic_vector(3 downto 0)
 		);
 end test_DS1620;
@@ -33,11 +32,10 @@ end test_DS1620;
 architecture truck_arch of test_DS1620 is
 
 	-- send_uart1
-	type state_uart1 is (idle1, start1, proc1, proc2, proc3);
+	type state_uart1 is (idle1, start1, proc1, proc2, proc3, proc4);
 	signal state_tx1_reg, state_tx1_next: state_uart1;
 
-	signal time_delay_reg, time_delay_next: unsigned(24 downto 0);		-- send_uart1
-	signal time_delay_reg2, time_delay_next2: unsigned(23 downto 0);	-- calc_proc
+	signal time_delay_reg, time_delay_next: unsigned(24 downto 0);
 
 	signal ds1620_done: std_logic;
 	signal start_tx: std_logic;
@@ -70,6 +68,7 @@ variable temp_uart: integer range 0 to 255:= 33;
 begin
 	if reset = '0' then
 		state_tx1_reg <= idle1;
+		state_tx1_next <= idle1;
 		data_tx <= (others=>'0');
 		start_tx <= '0';
 --		skip <= '0';
@@ -83,13 +82,11 @@ begin
 	else if clk'event and clk = '1' then
 		case state_tx1_reg is
 			when idle1 =>
-				start_tx <= '0';
 				start_ds1620 <= '1';
 				state_tx1_next <= start1;
 
 			when start1 =>
 				start_ds1620 <= '0';
-				start_tx <= '0';
 				if ds1620_done = '1' then
 					state_tx1_next <= proc1;
 					led1 <= "1110";
@@ -110,7 +107,13 @@ begin
 
 			when proc3 =>
 				start_tx <= '1';
-				state_tx1_next <= idle1;
+				state_tx1_next <= proc4;
+			
+			when proc4 =>
+				start_tx <= '0';
+				if done_tx = '1' then
+					state_tx1_next <= idle1;
+				end if;
 				
 --			when delay1 =>
  				-- if time_delay_reg > TIME_DELAY9 then

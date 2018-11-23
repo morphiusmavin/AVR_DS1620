@@ -63,9 +63,9 @@ begin
 				end if;
 			
 			when start2 =>
-				start_rx <= '0';
 				if done_rx = '1' then
-					raw_data(15 downto 8) <= data_rx;
+					start_rx <= '0';
+					raw_data(7 downto 0) <= data_rx;
 					state_uart_next2 <= next2;
 				end if;
 
@@ -74,9 +74,9 @@ begin
 				state_uart_next2 <= next3;
 
 			when next3 =>
-				start_rx <= '0';
 				if done_rx = '1' then
-					raw_data(7 downto 0) <= data_rx;
+					start_rx <= '0';
+					raw_data(15 downto 8) <= data_rx;
 					state_uart_next2 <= done2;
 					done <= '1';
 				end if;

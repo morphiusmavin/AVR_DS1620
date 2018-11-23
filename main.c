@@ -119,12 +119,12 @@ int main(void)
 {
 //	UINT temp;
 	int raw_data1, raw_data2, raw_data3, raw_data4;
-//	UCHAR xbyte;
+	UCHAR xbyte;
 	// hex values 0x2b = 70.7F
 	// and 0x31 = 76.1F
 	int dc3;
 	int i;
-	UCHAR main_loop_delay = 100;
+	UCHAR main_loop_delay = 10;
 
 	initUSART();
 
@@ -147,12 +147,31 @@ int main(void)
 	for(i = 0;i < 10;i++)
 	{
 		PORTB &= ~(1 << LED);
-		_delay_ms(50);
+		_delay_ms(5);
 		PORTB |= (1 << LED);
-		_delay_ms(50);
+		_delay_ms(5);
 	}		
 	_delay_ms(1000);
 	PORTB |= (1 << LED);
+
+//#if 0
+	xbyte = 0x21;
+	while(1)
+	{
+//		transmitByte(0);
+		_delay_ms(50);
+		transmitByte(xbyte++);
+		if(xbyte > 0x7d)
+			xbyte = 0x21;
+//		_delay_ms(2);
+		_delay_ms(50);
+		PORTB |= (1 << LED);
+		_delay_ms(50);
+		PORTB &= ~(1 << LED);
+	}
+//	}while(xbyte > 1);
+//#endif
+
 	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
 
 	_delay_ms(1);
@@ -367,6 +386,7 @@ int conv4(void)
 //******************************************************************************************//
 void transmitPreamble(void)
 {
+return;
 	transmitByte(0xFF);
 	transmitByte(0xFF);
 	transmitByte(0);

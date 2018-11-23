@@ -9,6 +9,7 @@ NET "reset" CLOCK_DEDICATED_ROUTE = FALSE;
 
 NET		"tx_uart"		LOC = "P77";
 NET		"rx_ds1620"		LOC = "P75";
+#NET		"test"			LOC = "P69";
 
 # led1 is the build-in LED's on the board
 NET		"led1[0]"	LOC = "p68";

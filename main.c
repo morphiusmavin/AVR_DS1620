@@ -124,7 +124,7 @@ int main(void)
 	// and 0x31 = 76.1F
 	int dc3;
 	int i;
-	UCHAR main_loop_delay = 10;
+	UCHAR main_loop_delay = 100;
 
 	initUSART();
 

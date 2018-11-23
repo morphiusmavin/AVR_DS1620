@@ -8,7 +8,6 @@ git add gitadd.sh
 git add pinDefines.h
 git add sfr_helper.h
 git add USART.h
-git add binaryMacro.h
 git add portpins.h
 git add test_float.cx
 git add DS1620.txt

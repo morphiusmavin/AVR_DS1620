@@ -48,7 +48,7 @@ architecture truck_arch of test_DS1620 is
 	signal done_tx: std_logic;
 	signal raw_data1: std_logic_vector(15 downto 0);
 	signal start_ds1620: std_logic;
-	signal index1: std_logic_vector(2 downto 0);
+	signal index1: std_logic_vector(1 downto 0);
 	
 begin
 
@@ -97,7 +97,7 @@ begin
 				end if;
 
 			when proc1 =>
-				data_tx <= X"0" & '0' & index1;
+				data_tx <= X"0" & "00" & index1;
 				pstart_tx <= '1';
 				state_tx1_next <= proc2;
 

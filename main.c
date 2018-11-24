@@ -86,7 +86,7 @@ blu/wh data
 #include <stdlib.h>
 
 int do_avg(int *avg_array, int cur);
-void transmit(int raw_data);
+void transmit(int raw_data, UCHAR index);
 int conv1(void);
 int conv2(void);
 int conv3(void);
@@ -94,7 +94,7 @@ int conv4(void);
 void transmitPreamble(void);
 
 #define LED PB5
-#define AVG_SIZE 6
+#define AVG_SIZE 12
 
 volatile int dc2;
 static int avg1[AVG_SIZE];
@@ -124,7 +124,7 @@ int main(void)
 	// and 0x31 = 76.1F
 	int dc3;
 	int i;
-	UCHAR main_loop_delay = 5;
+	UCHAR main_loop_delay = 10;
 
 	initUSART();
 
@@ -143,16 +143,16 @@ int main(void)
 
 	DDRB |= 0x20;
 	PORTB |= (1 << LED);
-	_delay_ms(1000);
-	for(i = 0;i < 10;i++)
+	_delay_ms(500);
+	for(i = 0;i < 20;i++)
 	{
 		PORTB &= ~(1 << LED);
-		_delay_ms(5);
+		_delay_ms(50);
 		PORTB |= (1 << LED);
-		_delay_ms(5);
+		_delay_ms(50);
 	}		
-	_delay_ms(1000);
-	PORTB &= ~(1 << LED);
+	_delay_ms(500);
+	PORTB |= (1 << LED);
 
 #if 0
 	xbyte = 0x4b;
@@ -230,7 +230,7 @@ int main(void)
 
 	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
 
-
+/*
 	transmitPreamble();
 
 	transmit(raw_data1);
@@ -244,46 +244,45 @@ int main(void)
 
 	transmit(raw_data4);
 	_delay_ms(10);
-
+*/
 	while(1)
 	{	
-		if(dc2 % main_loop_delay == 2)
+		if(dc2 % main_loop_delay == 0)
 		{
-			_delay_ms(200);
 			dc3 = dc2;
 
+//			transmitPreamble();
 
-			transmitPreamble();
-
-			if(dc3 % (main_loop_delay) == 2)
+			if(dc3 % (main_loop_delay) == 0)
 			{
 				raw_data1 = conv1();
-				transmit(raw_data1);
+				transmit(raw_data1,1);
 			}
-			_delay_ms(200);
+			_delay_ms(500);
 
 
-			if(dc3 % (main_loop_delay) == 2)
+			if(dc3 % (main_loop_delay) == 0)
 			{
 				raw_data2 = conv2();
-				transmit(raw_data2);
+				transmit(raw_data2,2);
 			}
-			_delay_ms(200);
+			_delay_ms(500);
 
 
-			if(dc3 % (main_loop_delay) == 2)
+			if(dc3 % (main_loop_delay) == 0)
 			{
 				raw_data3 = conv3();
-				transmit(raw_data3);
+				transmit(raw_data3,3);
 			}
-			_delay_ms(200);
+			_delay_ms(500);
 
 
-			if(dc3 % (main_loop_delay) == 2)
+			if(dc3 % (main_loop_delay) == 0)
 			{
 				raw_data4 = conv4();
-				transmit(raw_data4);
+				transmit(raw_data4,0);
 			}
+			_delay_ms(500);
 		}
 	}
 	return 0;
@@ -296,7 +295,7 @@ int do_avg(int *avg_array, int cur)
 	int avg;
 	avg = 0;
 
-return cur;
+//return cur;
 	
 	for(i = 0;i < AVG_SIZE;i++)
 		printf("%02d ",avg_array[i]);
@@ -320,10 +319,12 @@ return cur;
 }
 
 //******************************************************************************************//
-void transmit(int raw_data)
+void transmit(int raw_data, UCHAR index)
 {
 	int temp;
 	UCHAR xbyte;
+	index &= 0x03;
+	transmitByte(index);
 	temp = (UINT)raw_data;
 	temp >>= 8;
 	xbyte = (UCHAR)temp;

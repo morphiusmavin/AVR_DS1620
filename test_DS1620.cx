@@ -165,6 +165,8 @@ int main(int argc, char *argv[])
 //		strcat(time_buffer,": ");
 
 		write_file(filename, time_buffer);
+		strncpy(time_buffer,time_buffer+11,8);
+		time_buffer[8] = 0;
 		printf("%s ",time_buffer);
 #if 0
 		// read preamble of 0xFFFF0000
@@ -197,7 +199,7 @@ int main(int argc, char *argv[])
 //		printf("past last preamble\n");
 
 		read(fd,&index,1);
-		printf("%d: ",index);
+		printf("->    %d: ",index);
 
 		read(fd,&ch,1);
 		temp = (UINT)ch;

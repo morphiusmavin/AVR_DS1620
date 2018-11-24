@@ -94,7 +94,7 @@ int conv4(void);
 void transmitPreamble(void);
 
 #define LED PB5
-#define AVG_SIZE 4
+#define AVG_SIZE 6
 
 volatile int dc2;
 static int avg1[AVG_SIZE];
@@ -124,7 +124,7 @@ int main(void)
 	// and 0x31 = 76.1F
 	int dc3;
 	int i;
-	UCHAR main_loop_delay = 10;
+	UCHAR main_loop_delay = 5;
 
 	initUSART();
 
@@ -152,25 +152,25 @@ int main(void)
 		_delay_ms(5);
 	}		
 	_delay_ms(1000);
-	PORTB |= (1 << LED);
+	PORTB &= ~(1 << LED);
 
-//#if 0
-	xbyte = 0x21;
+#if 0
+	xbyte = 0x4b;
 	while(1)
 	{
-//		transmitByte(0);
-		_delay_ms(50);
-		transmitByte(xbyte++);
-		if(xbyte > 0x7d)
-			xbyte = 0x21;
+		transmitByte(0);
+		_delay_ms(10);
+		transmitByte(xbyte--);
+		if(xbyte < 2)
+			xbyte = 0x4b;
 //		_delay_ms(2);
-		_delay_ms(50);
+		_delay_ms(100);
 		PORTB |= (1 << LED);
-		_delay_ms(50);
+		_delay_ms(100);
 		PORTB &= ~(1 << LED);
 	}
 //	}while(xbyte > 1);
-//#endif
+#endif
 
 	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
 
@@ -247,39 +247,39 @@ int main(void)
 
 	while(1)
 	{	
-		if(dc2 % main_loop_delay == 4)
+		if(dc2 % main_loop_delay == 2)
 		{
-			_delay_ms(500);
+			_delay_ms(200);
 			dc3 = dc2;
 
 
 			transmitPreamble();
 
-			if(dc3 % (main_loop_delay) == 4)
+			if(dc3 % (main_loop_delay) == 2)
 			{
 				raw_data1 = conv1();
 				transmit(raw_data1);
 			}
-			_delay_ms(500);
+			_delay_ms(200);
 
 
-			if(dc3 % (main_loop_delay) == 4)
+			if(dc3 % (main_loop_delay) == 2)
 			{
 				raw_data2 = conv2();
 				transmit(raw_data2);
 			}
-			_delay_ms(500);
+			_delay_ms(200);
 
 
-			if(dc3 % (main_loop_delay) == 4)
+			if(dc3 % (main_loop_delay) == 2)
 			{
 				raw_data3 = conv3();
 				transmit(raw_data3);
 			}
-			_delay_ms(500);
+			_delay_ms(200);
 
 
-			if(dc3 % (main_loop_delay) == 4)
+			if(dc3 % (main_loop_delay) == 2)
 			{
 				raw_data4 = conv4();
 				transmit(raw_data4);
@@ -295,6 +295,8 @@ int do_avg(int *avg_array, int cur)
 	int i;
 	int avg;
 	avg = 0;
+
+return cur;
 	
 	for(i = 0;i < AVG_SIZE;i++)
 		printf("%02d ",avg_array[i]);

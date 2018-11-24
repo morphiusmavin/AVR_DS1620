@@ -15,6 +15,7 @@ entity DS1620 is
 		clk, reset: in std_logic;
 		start: in std_logic;
 		ds_rx: in std_logic;
+		index: out std_logic_vector(2 downto 0);
 		raw_data: out std_logic_vector(15 downto 0);
 		done: out std_logic);
 end DS1620;
@@ -29,8 +30,9 @@ architecture DS1620_arch of DS1620 is
 	signal done_rx: std_logic;
 	signal rx_uart: std_logic;
 	signal start_rx: std_logic;
---	signal test_raw: signed(15 downto 0);
 	signal skip: std_logic;
+	signal sindex: unsigned(2 downto 0);
+
 begin
 
 rx_uart_wrapper_unit: entity work.uartLED2(str_arch)
@@ -52,6 +54,9 @@ begin
 		time_delay_reg <= (others=>'0');
 		time_delay_next <= (others=>'0');
 		raw_data <= (others=>'0');
+		skip <= '1';
+		index <= (others=>'0');
+		sindex <= (others=>'0');
 
 	else if clk'event and clk = '1' then
 		case state_uart_reg2 is
@@ -59,6 +64,15 @@ begin
 				done <= '0';
 				if start = '1' then
 					start_rx <= '1';
+					skip <= not skip;
+					if skip = '1' then
+						if sindex > 2 then
+							sindex <= (others=>'0');
+						else
+							sindex <= sindex + 1;
+						end if;
+						index <= conv_std_logic_vector(sindex,3);
+					end if;
 					state_uart_next2 <= start2;
 				end if;
 			

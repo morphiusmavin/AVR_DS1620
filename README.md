@@ -1,8 +1,14 @@
 <h1>AVR_DS1620</h1>
 Program that runs on AVR ProMini to send temp readings from (4) DS1620 sensors to a<br />
 Xilinx Spartan-3E over serial port.<br />
-The program: test_DS1620.cx is compiled on a linux box to read the output from the serial<br />
-port of the AVR and spits out the time with the 4 readings<br />
+-- AVR -> FPGA -> RS-232 -> monitor<br />
+-- AVR to FPGA uses 5v->3v3 conv<br />
+-- FPGA to RS-232 uses 3v3 conv to RS-232 conv to monitor (linux box)<br />
+-- tx_uart is P77<br />
+-- rx_ds1620 is P75<br />
+<br />
+The program: test_DS1620.cx is compiled on a linux box to read the output<br />
+from the serial port of the FPGA and spits out the time with the 4 readings<br />
 <br />
 <h2>AVR Pinout</h2>
 1st DS1620<br />

@@ -115,6 +115,7 @@ int main(int argc, char *argv[])
 	time_t curtime2;
 	struct timeval mtv;
 	char time_buffer[40];
+	UCHAR index;
 
 	if(argc == 1)
 		strcpy(filename,"logfile.txt\0");
@@ -165,7 +166,7 @@ int main(int argc, char *argv[])
 
 		write_file(filename, time_buffer);
 		printf("%s ",time_buffer);
-
+#if 0
 		// read preamble of 0xFFFF0000
 		do{
 			read(fd,&ch,1);
@@ -192,8 +193,11 @@ int main(int argc, char *argv[])
 			read(fd,&ch,1);
 			i++;
 		}while(ch != 0);
-
+#endif
 //		printf("past last preamble\n");
+
+		read(fd,&index,1);
+		printf("%d: ",index);
 
 		read(fd,&ch,1);
 		temp = (UINT)ch;
@@ -209,12 +213,15 @@ int main(int argc, char *argv[])
 
 		memset(str,0,sizeof(str));
 		if(f_or_c == 1)
-			sprintf(str,"1: %0.2fF ",(double)fres);
+			sprintf(str,"%0.2fF ",(double)fres);
 		else
-			sprintf(str,"2: %0.2fC ",(double)fres);
+			sprintf(str,"%0.2fC ",(double)fres);
 
 		printf("%s",str);
 		write_file(filename, str);
+
+		read(fd,&index,1);
+		printf("%d: ",index);
 
 		read(fd,&ch,1);
 		temp = (UINT)ch;
@@ -226,11 +233,14 @@ int main(int argc, char *argv[])
 		fres = convert_to_T_F((int)temp);
 		memset(str,0,sizeof(str));
 		if(f_or_c == 1)
-			sprintf(str, "2: %0.2fF ",(double)fres);
+			sprintf(str, "%0.2fF ",(double)fres);
 		else
-			sprintf(str, "2: %0.2fC ",(double)fres);
+			sprintf(str, "%0.2fC ",(double)fres);
 		printf("%s",str);
 		write_file(filename, str);
+
+		read(fd,&index,1);
+		printf("%d: ",index);
 
 		read(fd,&ch,1);
 		temp = (UINT)ch;
@@ -242,11 +252,14 @@ int main(int argc, char *argv[])
 		fres = convert_to_T_F((int)temp);
 		memset(str,0,sizeof(str));
 		if(f_or_c == 1)
-			sprintf(str, "3: %0.2fF ",(double)fres);
+			sprintf(str, "%0.2fF ",(double)fres);
 		else
-			sprintf(str, "3: %0.2fC ",(double)fres);
+			sprintf(str, "%0.2fC ",(double)fres);
 		printf("%s",str);
 		write_file(filename, str);
+
+		read(fd,&index,1);
+		printf("%d: ",index);
 
 		read(fd,&ch,1);
 		temp = (UINT)ch;
@@ -258,9 +271,9 @@ int main(int argc, char *argv[])
 		fres = convert_to_T_F((int)temp);
 		memset(str,0,sizeof(str));
 		if(f_or_c == 1)
-			sprintf(str, "4: %0.2fF \n",(double)fres);
+			sprintf(str, "%0.2fF \n",(double)fres);
 		else
-			sprintf(str, "4: %0.2fC \n",(double)fres);
+			sprintf(str, "%0.2fC \n",(double)fres);
 		printf("%s",str);
 		write_file(filename, str);
 

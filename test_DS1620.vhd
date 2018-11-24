@@ -32,18 +32,23 @@ end test_DS1620;
 architecture truck_arch of test_DS1620 is
 
 	-- send_uart1
-	type state_uart1 is (idle1, start1, proc1, proc2, proc3, proc4);
+	type state_uart1 is (idle1, start1, proc1, proc2, proc3, proc4, proc5, done);
 	signal state_tx1_reg, state_tx1_next: state_uart1;
 
+	type state_txdly is (idled, startd, procd1);
+	signal state_txdly_reg, state_txdly_next: state_txdly;
+	
 	signal time_delay_reg, time_delay_next: unsigned(24 downto 0);
 
 	signal ds1620_done: std_logic;
 	signal start_tx: std_logic;
+	signal pstart_tx: std_logic;
 	signal data_tx: std_logic_vector(7 downto 0);
 	signal high_byte, low_byte: std_logic_vector(7 downto 0);
 	signal done_tx: std_logic;
 	signal raw_data1: std_logic_vector(15 downto 0);
 	signal start_ds1620: std_logic;
+	signal index1: std_logic_vector(2 downto 0);
 	
 begin
 
@@ -51,6 +56,7 @@ ds1620_unit: entity work.ds1620
 	port map(clk=>clk,reset=>reset,
 		start=>start_ds1620,
 		ds_rx=>rx_ds1620,
+		index=>index1,
 		raw_data=>raw_data1,
 		done=>ds1620_done);
 
@@ -70,14 +76,12 @@ begin
 		state_tx1_reg <= idle1;
 		state_tx1_next <= idle1;
 		data_tx <= (others=>'0');
-		start_tx <= '0';
 --		skip <= '0';
-		time_delay_reg <= (others=>'0');
-		time_delay_next <= (others=>'0');
 		low_byte <= X"00";
 		high_byte <= X"00";
 		start_ds1620 <= '0';
 		led1 <= "1111";
+		pstart_tx <= '0';
 
 	else if clk'event and clk = '1' then
 		case state_tx1_reg is
@@ -93,39 +97,80 @@ begin
 				end if;
 
 			when proc1 =>
-				data_tx <= raw_data1(7 downto 0);
-				start_tx <= '1';
+				data_tx <= X"0" & '0' & index1;
+				pstart_tx <= '1';
 				state_tx1_next <= proc2;
 
 			when proc2 =>
-				start_tx <= '0';
+				pstart_tx <= '0';
 				if done_tx = '1' then
-					led1 <= "0111";
-					data_tx <= raw_data1(15 downto 8);
+					led1 <= "1101";
+					data_tx <= raw_data1(7 downto 0);
 					state_tx1_next <= proc3;
 				end if;	
 
 			when proc3 =>
-				start_tx <= '1';
+				pstart_tx <= '1';
 				state_tx1_next <= proc4;
-			
+
 			when proc4 =>
-				start_tx <= '0';
+				pstart_tx <= '0';
+				if done_tx = '1' then
+					led1 <= "0111";
+					data_tx <= raw_data1(15 downto 8);
+					state_tx1_next <= proc5;
+				end if;	
+
+			when proc5 =>
+				pstart_tx <= '1';
+				state_tx1_next <= done;
+			
+			when done =>
+				pstart_tx <= '0';
 				if done_tx = '1' then
 					state_tx1_next <= idle1;
 				end if;
-				
---			when delay1 =>
- 				-- if time_delay_reg > TIME_DELAY9 then
-					-- time_delay_next <= (others=>'0');
-					-- start_tx <= '0';
-					-- state_tx1_next <= idle1;
-				-- else
-					-- time_delay_next <= time_delay_reg + 1;
-				-- end if;	
+
+		end case;
+		state_tx1_reg <= state_tx1_next;
+		end if;
+	end if;
+end process;
+
+-- ********************************************************************************
+tx_delay: process(clk, reset, state_txdly_reg)
+variable temp_uart: integer range 0 to 255:= 33;
+begin
+	if reset = '0' then
+		time_delay_reg <= (others=>'0');
+		time_delay_next <= (others=>'0');
+		state_txdly_reg <= idled;
+		state_txdly_next <= idled;
+		start_tx <= '0';
+
+	else if clk'event and clk = '1' then
+		case state_txdly_reg is
+			when idled =>
+				if pstart_tx = '1' then
+					state_txdly_next <= startd;
+				end if;
+
+			when startd =>
+ 				if time_delay_reg > TIME_DELAY9 then
+					time_delay_next <= (others=>'0');
+					state_txdly_next <= procd1;
+					start_tx <= '1';
+				else
+					time_delay_next <= time_delay_reg + 1;
+				end if;	
+
+			when procd1 =>
+				start_tx <= '0';
+				state_txdly_next <= idled;
+
 		end case;
 		time_delay_reg <= time_delay_next;
-		state_tx1_reg <= state_tx1_next;
+		state_txdly_reg <= state_txdly_next;
 		end if;
 	end if;
 end process;

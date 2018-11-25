@@ -126,7 +126,7 @@ int main(void)
 	int i;
 	// works up to as fast as every 2 seconds (main_delay_loop = 2)
 //	UCHAR main_loop_delay = 300;	// 5 minutes
-	UCHAR main_loop_delay = 2;
+	UCHAR main_loop_delay = 4;
 
 	initUSART();
 
@@ -298,14 +298,21 @@ int do_avg(int *avg_array, int cur)
 	int avg;
 	avg = 0;
 
-//return cur;
+return cur;
 	
 //	for(i = 0;i < AVG_SIZE;i++)
 //		printf("%02d ",avg_array[i]);
 
 	for(i = 0;i < AVG_SIZE-1;i++)
-		avg_array[i] = avg_array[i+1];
+		avg += avg_array[i] = avg_array[i+1];
 
+/*	avg /= AVG_SIZE - 1;
+	
+	if(cur > avg + 20 || cur < avg - 20)
+		cur = avg;
+
+	avg = 0;
+*/
 	avg_array[AVG_SIZE-1] = cur;	
 
 //	for(i = 0;i < AVG_SIZE;i++)
@@ -318,6 +325,7 @@ int do_avg(int *avg_array, int cur)
 }
 
 //******************************************************************************************//
+// send high byte first
 void transmit(int raw_data, UCHAR index)
 {
 	int temp;

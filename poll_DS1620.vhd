@@ -38,12 +38,19 @@ architecture truck_arch of poll_DS1620 is
 	type state_uart1 is (idle1, start1, proc1, proc2);
 	signal state_tx1_reg, state_tx1_next: state_uart1;
 
+	type state_check is (idled, startd, procd1);
+	signal state_check_reg, state_check_next: state_check;
+
+	signal time_delay_reg, time_delay_next: unsigned(24 downto 0);
+
 	signal ds1620_done: std_logic;
 	signal pstart_tx: std_logic;
 	signal high_byte, low_byte: std_logic_vector(7 downto 0);
 	signal raw_data1: std_logic_vector(15 downto 0);
 	signal start_ds1620: std_logic;
 	signal index1: std_logic_vector(1 downto 0);
+	signal check_done: std_logic;
+	signal bad_value: std_logic;
 	
 begin
 
@@ -86,16 +93,28 @@ begin
 				end if;
 
 			when proc1 =>
-				state_tx1_next <= proc2;
+				if check_done = '1' then
+					state_tx1_next <= proc2;
+				end if;
 
 			when proc2 =>
-				case index1 is
-					when "00" => temp_data1 <= raw_data1;
-					when "01" => temp_data2 <= raw_data1;
-					when "10" => temp_data3 <= raw_data1;
-					when "11" => temp_data4 <= raw_data1;
-					when others =>
-				end case;
+				if bad_value = '0' then
+					case index1 is
+						when "00" => temp_data1 <= raw_data1;
+						when "01" => temp_data2 <= raw_data1;
+						when "10" => temp_data3 <= raw_data1;
+						when "11" => temp_data4 <= raw_data1;
+						when others =>
+					end case;
+				else
+					case index1 is
+						when "00" => temp_data1 <= X"FEFE";
+						when "01" => temp_data2 <= X"FEFE";
+						when "10" => temp_data3 <= X"FEFE";
+						when "11" => temp_data4 <= X"FEFE";
+						when others =>
+					end case;
+				end if;
 				done <= '1';
 				state_tx1_next <= idle1;
 
@@ -104,5 +123,53 @@ begin
 		end if;
 	end if;
 end process;
+
+--0x0001 -> 0x00FA is valid +F and 0x0193 -> 0x01ff is valid for -F readings
+
+check_unit: process(clk, reset, state_check_reg)
+variable temp: integer range 0 to 255:= 33;
+begin
+	if reset = '0' then
+		time_delay_reg <= (others=>'0');
+		time_delay_next <= (others=>'0');
+		state_check_reg <= idled;
+		state_check_next <= idled;
+		check_done <= '1';
+		bad_value <= '0';
+		
+	else if clk'event and clk = '1' then
+		case state_check_reg is
+			when idled =>
+ 				-- if time_delay_reg > TIME_DELAY9 then
+					-- time_delay_next <= (others=>'0');
+					-- state_check_next <= idled;
+				-- else
+					-- time_delay_next <= time_delay_reg + 1;
+				-- end if;	
+				check_done <= '0';
+				if ds1620_done = '1' then
+					state_check_next <= startd;
+				end if;
+
+			when startd =>
+				temp := conv_integer(raw_data1(7 downto 0));
+				if temp > 1 then
+					bad_value <= '1';
+				else
+					bad_value <= '0';
+				end if;
+				state_check_next <= procd1;
+
+			when procd1 =>
+				check_done <= '1';
+				state_check_next <= idled;
+
+		end case;
+		time_delay_reg <= time_delay_next;
+		state_check_reg <= state_check_next;
+		end if;
+	end if;
+end process;
+
 
 end truck_arch;

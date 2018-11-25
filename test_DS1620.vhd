@@ -115,6 +115,7 @@ begin
 				xmit_uindex <= "0001";
 				led1 <= "1110";
 				xmit_array(0) <= X"FF";
+				-- send high_byte first because this is byte reversed in DS1620.vhd
 				xmit_array(1) <= temp_data1(7 downto 0);
 				xmit_array(2) <= temp_data1(15 downto 8);
 				xmit_array(3) <= temp_data2(7 downto 0);
@@ -228,7 +229,7 @@ begin
 				end if;
 
 			when startd =>
- 				if time_delay_reg2 > TIME_DELAY8c then
+ 				if time_delay_reg2 > TIME_DELAY9 then
 					time_delay_next2 <= (others=>'0');
 					state_txdly_next <= procd1;
 					start_tx <= '1';

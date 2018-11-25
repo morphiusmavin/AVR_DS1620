@@ -78,6 +78,7 @@ begin
 				
 			when next2 =>
 				start_rx <= '1';
+				raw_data <= (others=>'0');
 				state_uart_next2 <= next3;
 			
 			when next3 =>

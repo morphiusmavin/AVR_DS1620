@@ -199,7 +199,6 @@ int main(int argc, char *argv[])
 #endif
 //		printf("past last preamble\n");
 
-
 		do{
 			read(fd,&ch,1);
 		}while(ch != 0xFF);
@@ -213,33 +212,22 @@ int main(int argc, char *argv[])
 	//	printf("%02x ",temp2);
 		temp |= (UINT)temp2;
 	//	printf("%02x %d\n",temp,temp);
-//		printf("%02x ",temp);
-		fres =  convert_to_T_F((int)temp);
+		if(temp != 0xFEFE)
+		{
+			fres =  convert_to_T_F((int)temp);
 
-		memset(str,0,sizeof(str));
-		if(f_or_c == 1)
-			sprintf(str,"%0.2fF ",(double)fres);
-		else
-			sprintf(str,"%0.2fC ",(double)fres);
+			if(fres != 0.0)
+			{
+				memset(str,0,sizeof(str));
+				if(f_or_c == 1)
+					sprintf(str,"1: %0.2fF ",(double)fres);
+				else
+					sprintf(str,"1: %0.2fC ",(double)fres);
 
-		printf("%s",str);
-		write_file(filename, str);
-
-		read(fd,&ch,1);
-		temp = (UINT)ch;
-		temp <<= 8;
-		read(fd,&ch,1);
-		temp2 = (UINT)ch;
-		temp |= (UINT)temp2;
-
-		fres = convert_to_T_F((int)temp);
-		memset(str,0,sizeof(str));
-		if(f_or_c == 1)
-			sprintf(str, "%0.2fF ",(double)fres);
-		else
-			sprintf(str, "%0.2fC ",(double)fres);
-		printf("%s",str);
-		write_file(filename, str);
+				printf("%s",str);
+				write_file(filename, str);
+			}else printf("%02x ",temp);
+		}
 
 		read(fd,&ch,1);
 		temp = (UINT)ch;
@@ -248,14 +236,20 @@ int main(int argc, char *argv[])
 		temp2 = (UINT)ch;
 		temp |= (UINT)temp2;
 
-		fres = convert_to_T_F((int)temp);
-		memset(str,0,sizeof(str));
-		if(f_or_c == 1)
-			sprintf(str, "%0.2fF ",(double)fres);
-		else
-			sprintf(str, "%0.2fC ",(double)fres);
-		printf("%s",str);
-		write_file(filename, str);
+		if(temp != 0xFEFE)
+		{
+			fres = convert_to_T_F((int)temp);
+			if(fres != 0.0)
+			{
+				memset(str,0,sizeof(str));
+				if(f_or_c == 1)
+					sprintf(str, "2: %0.2fF ",(double)fres);
+				else
+					sprintf(str, "2: %0.2fC ",(double)fres);
+				printf("%s",str);
+				write_file(filename, str);
+			}else printf("%02x ",temp);
+		}
 
 		read(fd,&ch,1);
 		temp = (UINT)ch;
@@ -264,15 +258,52 @@ int main(int argc, char *argv[])
 		temp2 = (UINT)ch;
 		temp |= (UINT)temp2;
 
-		fres = convert_to_T_F((int)temp);
-		memset(str,0,sizeof(str));
-		if(f_or_c == 1)
-			sprintf(str, "%0.2fF \n",(double)fres);
-		else
-			sprintf(str, "%0.2fC \n",(double)fres);
-		printf("%s",str);
-		write_file(filename, str);
+		if(temp != 0xFEFE)
+		{
+			fres = convert_to_T_F((int)temp);
+			if(fres != 0.0)
+			{
+				memset(str,0,sizeof(str));
+				if(f_or_c == 1)
+					sprintf(str, "3: %0.2fF ",(double)fres);
+				else
+					sprintf(str, "3: %0.2fC ",(double)fres);
+				printf("%s",str);
+				write_file(filename, str);
+			}else printf("%02x ",temp);
+		}
 
+		read(fd,&ch,1);
+		temp = (UINT)ch;
+		temp <<= 8;
+		read(fd,&ch,1);
+		temp2 = (UINT)ch;
+		temp |= (UINT)temp2;
+
+		if(temp != 0xFEFE)
+		{
+			fres = convert_to_T_F((int)temp);
+			if(fres != 0.0)
+			{
+				memset(str,0,sizeof(str));
+				if(f_or_c == 1)
+					sprintf(str, "4: %0.2fF \n",(double)fres);
+				else
+					sprintf(str, "4: %0.2fC \n",(double)fres);
+				printf("%s",str);
+				write_file(filename, str);
+			}else 
+			{
+				printf("%02x\n",temp);
+				strcpy(str,"\n");
+				write_file(filename,str);
+			}
+		}else
+		{
+			printf("\n");
+			strcpy(str,"\n");
+			write_file(filename,str);
+		}
 		read(fd,&buff[0],8);		
 		temp = 0;
 	}
@@ -287,14 +318,21 @@ int main(int argc, char *argv[])
 }
 
 /*********************************************************************************/
+// 0x0001 -> 0x00FA is valid +F and 0x0193 -> 0x01ff is valid for -F readings
+
 float convert_to_T_F(int raw_data)
-{
+	{
 	float T_F, T_celcius;
 	if ((raw_data & 0x100) != 0)
 	{
 		raw_data = - (((~raw_data)+1) & 0xff); /* take 2's comp */   
 	}
 	T_celcius = raw_data * 0.5;
+	if(T_celcius > 125 || T_celcius < -54)
+	{
+		printf("OOR ");
+		return 0;
+	}
 	if(f_or_c == 1)
 	{
 		T_F = (T_celcius * 1.8) + 32;
@@ -325,3 +363,5 @@ int write_file(char *filename,char *str)
 	close(fp);
 	return 0;
 }
+
+

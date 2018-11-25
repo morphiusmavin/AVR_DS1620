@@ -94,7 +94,7 @@ int conv4(void);
 void transmitPreamble(void);
 
 #define LED PB5
-#define AVG_SIZE 12
+#define AVG_SIZE 4	// may have overflow problem if this no. is too high (12 is def. too high)
 
 volatile int dc2;
 static int avg1[AVG_SIZE];
@@ -124,7 +124,8 @@ int main(void)
 	// and 0x31 = 76.1F
 	int dc3;
 	int i;
-	UCHAR main_loop_delay = 10;
+	// works up to as fast as every 2 seconds (main_delay_loop = 2)
+	UCHAR main_loop_delay = 300;	// 5 minutes
 
 	initUSART();
 
@@ -283,6 +284,7 @@ int main(void)
 				transmit(raw_data4,0);
 			}
 			_delay_ms(500);
+
 		}
 	}
 	return 0;
@@ -297,20 +299,16 @@ int do_avg(int *avg_array, int cur)
 
 //return cur;
 	
-	for(i = 0;i < AVG_SIZE;i++)
-		printf("%02d ",avg_array[i]);
-
-	printf("\n");
+//	for(i = 0;i < AVG_SIZE;i++)
+//		printf("%02d ",avg_array[i]);
 
 	for(i = 0;i < AVG_SIZE-1;i++)
 		avg_array[i] = avg_array[i+1];
 
 	avg_array[AVG_SIZE-1] = cur;	
 
-	for(i = 0;i < AVG_SIZE;i++)
-		printf("%02d ",avg_array[i]);
-
-	printf("\n");
+//	for(i = 0;i < AVG_SIZE;i++)
+//		printf("%02d ",avg_array[i]);
 
 	for(i = 0;i < AVG_SIZE;i++)
 		avg += avg_array[i];

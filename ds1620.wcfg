@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="C:/Users/Daniel/dev/test_DS1620/test_bench_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="commonpckg" />
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+            <top_module name="std_logic_arith" />
+            <top_module name="std_logic_signed" />
+            <top_module name="test_bench" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="13" />
+   <wave_markers>
+      <marker time="3195000000" label="" />
+      <marker time="2865000000" label="" />
+   </wave_markers>
+   <wvobject fp_name="/test_bench/clk" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_bench/uut/start_ds1620" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">start_ds1620</obj_property>
+      <obj_property name="ObjectShortName">start_ds1620</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+      <obj_property name="CustomSignalColor">#00ffff</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_bench/uut/state_tx1_reg" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state_tx1_reg</obj_property>
+      <obj_property name="ObjectShortName">state_tx1_reg</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_bench/uut/xmit_array" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">xmit_array[0:9]</obj_property>
+      <obj_property name="ObjectShortName">xmit_array[0:9]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_bench/uut/xmit_uindex" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">xmit_uindex[4:0]</obj_property>
+      <obj_property name="ObjectShortName">xmit_uindex[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_bench/uut/temp_data1" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">temp_data1[15:0]</obj_property>
+      <obj_property name="ObjectShortName">temp_data1[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_bench/uut/temp_data2" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">temp_data2[15:0]</obj_property>
+      <obj_property name="ObjectShortName">temp_data2[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_bench/uut/temp_data3" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">temp_data3[15:0]</obj_property>
+      <obj_property name="ObjectShortName">temp_data3[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_bench/uut/temp_data4" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">temp_data4[15:0]</obj_property>
+      <obj_property name="ObjectShortName">temp_data4[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_bench/uut/skip" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">skip</obj_property>
+      <obj_property name="ObjectShortName">skip</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_bench/uut/skip2" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">skip2</obj_property>
+      <obj_property name="ObjectShortName">skip2</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_bench/uut/xmit_stlv" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">xmit_stlv[7:0]</obj_property>
+      <obj_property name="ObjectShortName">xmit_stlv[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/test_bench/uut/data_tx" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">data_tx[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_tx[7:0]</obj_property>
+   </wvobject>
+</wave_config>

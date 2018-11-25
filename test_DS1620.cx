@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
 	int i;
 	UCHAR ch; 
 	char str[100];
+	UCHAR buff[20];
 	struct termios oldtio,newtio;
 	memset(&newtio, 0, sizeof newtio);
 	UINT temp, temp2;
@@ -198,8 +199,10 @@ int main(int argc, char *argv[])
 #endif
 //		printf("past last preamble\n");
 
-		read(fd,&index,1);
-		printf("->    %d: ",index);
+
+		do{
+			read(fd,&ch,1);
+		}while(ch != 0xFF);
 
 		read(fd,&ch,1);
 		temp = (UINT)ch;
@@ -222,9 +225,6 @@ int main(int argc, char *argv[])
 		printf("%s",str);
 		write_file(filename, str);
 
-		read(fd,&index,1);
-		printf("%d: ",index);
-
 		read(fd,&ch,1);
 		temp = (UINT)ch;
 		temp <<= 8;
@@ -241,9 +241,6 @@ int main(int argc, char *argv[])
 		printf("%s",str);
 		write_file(filename, str);
 
-		read(fd,&index,1);
-		printf("%d: ",index);
-
 		read(fd,&ch,1);
 		temp = (UINT)ch;
 		temp <<= 8;
@@ -259,9 +256,6 @@ int main(int argc, char *argv[])
 			sprintf(str, "%0.2fC ",(double)fres);
 		printf("%s",str);
 		write_file(filename, str);
-
-		read(fd,&index,1);
-		printf("%d: ",index);
 
 		read(fd,&ch,1);
 		temp = (UINT)ch;
@@ -279,6 +273,7 @@ int main(int argc, char *argv[])
 		printf("%s",str);
 		write_file(filename, str);
 
+		read(fd,&buff[0],8);		
 		temp = 0;
 	}
 

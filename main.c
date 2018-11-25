@@ -125,7 +125,8 @@ int main(void)
 	int dc3;
 	int i;
 	// works up to as fast as every 2 seconds (main_delay_loop = 2)
-	UCHAR main_loop_delay = 300;	// 5 minutes
+//	UCHAR main_loop_delay = 300;	// 5 minutes
+	UCHAR main_loop_delay = 2;
 
 	initUSART();
 

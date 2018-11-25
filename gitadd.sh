@@ -18,6 +18,7 @@ git add DS16203.c
 git add DS16204.c
 git add DS1620.h
 git add test_DS1620.cx
+git add poll_DS1620.vhd
 git add DS1620.vhd
 git add test_DS1620.ucf
 git add test_DS1620.vhd

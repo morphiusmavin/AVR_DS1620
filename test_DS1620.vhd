@@ -59,7 +59,6 @@ architecture truck_arch of test_DS1620 is
 	signal skip: std_logic;
 	signal skip2: std_logic;
 	signal xmit_stdlv: std_logic_vector(7 downto 0);
-	signal done: std_logic;
 	-- no of elements in xmit_array minus the 1st one which is 0xFF
 	
 begin
@@ -70,8 +69,7 @@ wrapper_DS1620_unit: entity work.poll_DS1620
 		temp_data1=>temp_data1,
 		temp_data2=>temp_data2,
 		temp_data3=>temp_data3,
-		temp_data4=>temp_data4,
-		done=>done);
+		temp_data4=>temp_data4);
 
 tx_uart_wrapper_unit: entity work.uartLED(str_arch)
 	generic map(DVSR_M=>DVSR_MU_19200)
@@ -124,15 +122,6 @@ begin
 				xmit_array(6) <= temp_data3(15 downto 8);
 				xmit_array(7) <= temp_data4(7 downto 0);
 				xmit_array(8) <= temp_data4(15 downto 8);
-				-- xmit_array(0) <= X"FF";
-				-- xmit_array(1) <= X"AA";
-				-- xmit_array(2) <= X"55";
-				-- xmit_array(3) <= X"FF";
-				-- xmit_array(4) <= X"FF";
-				-- xmit_array(5) <= X"22";
-				-- xmit_array(6) <= X"FF";
-				-- xmit_array(7) <= X"34";
-				-- xmit_array(8) <= X"45";
 				xmit_array(9) <= X"01";
 				xmit_array(10) <= X"02";
 				xmit_array(11) <= X"03";

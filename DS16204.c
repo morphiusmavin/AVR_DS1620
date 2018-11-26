@@ -18,15 +18,14 @@
 #define DS1620_DDR		DDRC
 #define DS1620_PIN		PINC
 
-#define DS1620_PIN_DQ	PD2
-#define DS1620_PIN_CLK	PD3
-#define DS1620_PIN_RST	PD4
+#define DS1620_PIN_DQ	PC0
+#define DS1620_PIN_CLK	PC1
+#define DS1620_PIN_RST	PC2
 
 void init1620_4()
 {
 	// All pins -> output
 	DS1620_DDR |= (1<< DS1620_PIN_DQ) | (1<< DS1620_PIN_RST) | (1<< DS1620_PIN_CLK);
-	
 	writeCommandTo1620_4( DS1620_CMD_WRITECONF, 0x02 );			// CPU mode; continous conversion
 //	writeByteTo1620_4( DS1620_CMD_STARTCONV );					// Start conversion
 }

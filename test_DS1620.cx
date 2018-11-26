@@ -169,35 +169,6 @@ int main(int argc, char *argv[])
 		strncpy(time_buffer,time_buffer+11,8);
 		time_buffer[8] = 0;
 		printf("%s ",time_buffer);
-#if 0
-		// read preamble of 0xFFFF0000
-		do{
-			read(fd,&ch,1);
-			i++;
-		}while(ch != 0xff);
-
-//		printf("past 1st pre\n");
-		i = 0;
-		do{
-			read(fd,&ch,1);
-			i++;
-		}while(ch != 0xff);
-
-//		printf("past 2nd pre\n");
-		i = 0;
-		do{
-			read(fd,&ch,1);
-			i++;
-		}while(ch != 0);
-
-//		printf("past 3rd pre\n");
-		i = 0;
-		do{
-			read(fd,&ch,1);
-			i++;
-		}while(ch != 0);
-#endif
-//		printf("past last preamble\n");
 
 		do{
 			read(fd,&ch,1);

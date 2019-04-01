@@ -123,6 +123,9 @@ int main(void)
 	low_temp3 = 0x001e;		// heat strin 2 on at 59F
 	UCHAR main_loop_delay = 15;
 	UCHAR second_loop_delay = 20;
+	int port0 = 0;
+	port1 = 1;
+	port2 = 2;
 
 	initUSART();
 
@@ -245,22 +248,35 @@ int main(void)
 			{
 				if(raw_data2 > high_temp)
 				{
-					heater_relay(0,0);
+					heater_relay(port0,0);
 				}
 				else if(raw_data2 < low_temp)
 				{
-					heater_relay(0,1);
+					heater_relay(port0,1);
 				}
 
 				if(raw_data2 < low_temp2)
-					heater_relay(1,1);					// if temp < low_temp2 then turn on
+					heater_relay(port1,1);					// if temp < low_temp2 then turn on
 				else									// 2nd heat strip
-					heater_relay(1,0);
+					heater_relay(port1,0);
 
 				if(raw_data2 < low_temp3)
-					heater_relay(2,1);					// if temp < low_temp3 then turn on
+					heater_relay(port2,1);					// if temp < low_temp3 then turn on
 				else									// 3rd heat strip
-					heater_relay(2,0);
+					heater_relay(port2,0);
+
+				if(port0 > 2)
+					port0 = 0;
+
+				if(port1 > 2)
+					port1 = 0;
+
+				if(port2 > 2)
+					port2 = 0;
+
+				port0++;
+				port1++;
+				port2++;	
 			}
 				// switch float charge relays every 10 min.
 			if(dc3 % (main_loop_delay * 80) == 0)

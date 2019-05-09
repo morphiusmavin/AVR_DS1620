@@ -176,14 +176,17 @@ int main(void)
 
 	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
 
+#if 0
 	_delay_ms(1);
 	init1620();
 	_delay_ms(1);
 	init1620_2();
+#endif
 	_delay_ms(1);
 	init1620_3();
-	_delay_ms(1);
-	init1620_4();
+
+//	_delay_ms(1);
+//	init1620_4();
 
 	_delay_ms(10);
 /*
@@ -196,6 +199,7 @@ int main(void)
 		_delay_ms(20);
 	}while(xbyte > 1);
 */
+/*
 	writeByteTo1620( DS1620_CMD_STARTCONV );
 	raw_data1 = readTempFrom1620_int();
 	writeByteTo1620(DS1620_CMD_STOPCONV);
@@ -207,6 +211,7 @@ int main(void)
 	writeByteTo1620_2(DS1620_CMD_STOPCONV);
 
 	_delay_ms(10);
+*/
 
 	writeByteTo1620_3( DS1620_CMD_STARTCONV );
 	raw_data3 = readTempFrom1620_int_3();
@@ -214,6 +219,7 @@ int main(void)
 
 	_delay_ms(10);
 
+#if 0
 	writeByteTo1620_4( DS1620_CMD_STARTCONV );
 	raw_data4 = readTempFrom1620_int_4();
 	writeByteTo1620_4(DS1620_CMD_STOPCONV);
@@ -223,12 +229,12 @@ int main(void)
 
 	for(i = 0;i < AVG_SIZE;i++)
 		avg2[i] = raw_data2;
-
+#endif
 	for(i = 0;i < AVG_SIZE;i++)
 		avg3[i] = raw_data3;
 
-	for(i = 0;i < AVG_SIZE;i++)
-		avg4[i] = raw_data4;
+//	for(i = 0;i < AVG_SIZE;i++)
+//		avg4[i] = raw_data4;
 
 	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
 
@@ -249,12 +255,13 @@ int main(void)
 */
 	while(1)
 	{	
-		if(dc2 % main_loop_delay == 0)
+//		if(dc2 % main_loop_delay == 0)
+if(1)
 		{
 			dc3 = dc2;
 
 //			transmitPreamble();
-
+#if 0
 			if(dc3 % (main_loop_delay) == 0)
 			{
 				raw_data1 = conv1();
@@ -270,22 +277,23 @@ int main(void)
 			}
 			_delay_ms(500);
 
-
-			if(dc3 % (main_loop_delay) == 0)
+#endif
+//			if(dc3 % (main_loop_delay) == 0)
+if(1)
 			{
 				raw_data3 = conv3();
 				transmit(raw_data3,3);
 			}
-			_delay_ms(500);
+			_delay_ms(1000);
 
-
+#if 0
 			if(dc3 % (main_loop_delay) == 0)
 			{
 				raw_data4 = conv4();
 				transmit(raw_data4,0);
 			}
 			_delay_ms(500);
-
+#endif
 		}
 	}
 	return 0;
@@ -331,7 +339,11 @@ void transmit(int raw_data, UCHAR index)
 	int temp;
 	UCHAR xbyte;
 	index &= 0x03;
-	transmitByte(index);
+//	transmitByte(index);
+	xbyte = 0xFF;
+	transmitByte(xbyte);
+	transmitByte(xbyte);
+
 	temp = (UINT)raw_data;
 	temp >>= 8;
 	xbyte = (UCHAR)temp;

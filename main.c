@@ -34,7 +34,7 @@ DS1620 pinout:
 1 2 3 4
 	  -
 
-1 - DQ	
+1 - DQ
 2 - CLK
 3 - RST
 4 - GND
@@ -96,8 +96,8 @@ volatile UCHAR xbyte;
 static int avg1[AVG_SIZE];
 static int avg2[AVG_SIZE];
 
-ISR(TIMER1_OVF_vect) 
-{ 
+ISR(TIMER1_OVF_vect)
+{
 	TCNT1 = 0x0002;	// this counts up so the lower, the slower (0xFFFF is the fastest)
 	dc2++;
 	if(dc2 % 2 == 0)
@@ -119,13 +119,15 @@ int main(void)
 	int i;
 	high_temp = 0x0036;		// all heat strips off at 80F
 	low_temp = 0x002e;		// heat strip 1 on at 73F
-	low_temp2 = 0x0026;		// heat strin 2 on at 66F
-	low_temp3 = 0x001e;		// heat strin 2 on at 59F
+	low_temp2 = 0x0026;		// heat strip 2 on at 66F
+	low_temp3 = 0x001e;		// heat strip 3 on at 59F
 	UCHAR main_loop_delay = 15;
-	UCHAR second_loop_delay = 20;
+//	UCHAR second_loop_delay = 20;
+//	UCHAR main_loop_delay = 2;
+//	UCHAR second_loop_delay = 4;
 	int port0 = 0;
-	port1 = 1;
-	port2 = 2;
+	int port1 = 1;
+	int port2 = 2;
 
 	initUSART();
 
@@ -138,7 +140,7 @@ int main(void)
 	TCCR1B = (1<<CS10) | (1<<CS11);	// clk/64
 //	TCCR1B = (1<<CS11);	// clk/8	(see page 144 in datasheet)
 //	TCCR1B = (1<<CS10);	// no prescaling
-	
+
 	TIMSK1 = (1 << TOIE1) ;   // Enable timer1 overflow interrupt(TOIE1)
 	dc2 = 0;
 	dc3 = 0;
@@ -155,7 +157,7 @@ int main(void)
 		_delay_ms(50);
 		HEAT_RELAY_PORT &= ~(1 << LED);
 		_delay_ms(50);
-	}		
+	}
 
 	for(i = 0;i < 3;i++)
 	{
@@ -178,8 +180,8 @@ int main(void)
 		mask >>= 1;
 		_delay_ms(300);
 	}
-	mask = 1;	
-	
+	mask = 1;
+
 	float_relay(0x08);
 
 	_delay_ms(1);
@@ -199,7 +201,7 @@ int main(void)
 	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
 
 	while(1)
-	{	
+	{
 		if(dc2 % main_loop_delay == 0)
 		{
 			raw_data1 = readTempFrom1620_int();
@@ -211,11 +213,13 @@ int main(void)
 				temp = (UINT)raw_data1;
 				temp >>= 8;
 				xbyte = (UCHAR)temp;
+//				printf("1a: %2x ",xbyte);
 				transmitByte(xbyte);
 				_delay_ms(1);
 				temp = (UINT)raw_data1;
 				xbyte = (UCHAR)temp;
 				transmitByte(xbyte);
+//				printf("1b: %2x ",xbyte);
 			}
 			_delay_ms(50);
 
@@ -231,6 +235,7 @@ int main(void)
 				_delay_ms(1);
 				temp = (UINT)raw_data2;
 				xbyte = (UCHAR)temp;
+//				printf("2a: %2x ",xbyte);
 				transmitByte(xbyte);
 				// format 3rd byte sent to serial port 
 				// as XHHHFFFF where H = heat strips and F = float relays
@@ -264,7 +269,7 @@ int main(void)
 					heater_relay(port2,1);					// if temp < low_temp3 then turn on
 				else									// 3rd heat strip
 					heater_relay(port2,0);
-
+/*
 				if(port0 > 2)
 					port0 = 0;
 
@@ -276,7 +281,8 @@ int main(void)
 
 				port0++;
 				port1++;
-				port2++;	
+				port2++;
+*/
 			}
 				// switch float charge relays every 10 min.
 			if(dc3 % (main_loop_delay * 80) == 0)
@@ -303,19 +309,19 @@ void heater_relay(int port, int onoff)
 		case 0:
 			if(onoff > 0)
 				HEAT_RELAY_PORT &= ~(1 << HEAT_RELAY1);
-			else	
+			else
 				HEAT_RELAY_PORT |= (1 << HEAT_RELAY1);
 		break;
 		case 1:
 			if(onoff > 0)
 				HEAT_RELAY_PORT &= ~(1 << HEAT_RELAY2);
-			else	
+			else
 				HEAT_RELAY_PORT |= (1 << HEAT_RELAY2);
 		break;
 		case 2:
 			if(onoff > 0)
 				HEAT_RELAY_PORT &= ~(1 << HEAT_RELAY3);
-			else	
+			else
 				HEAT_RELAY_PORT |= (1 << HEAT_RELAY3);
 		break;
 		default:
@@ -356,7 +362,7 @@ int do_avg(int *avg_array, int cur)
 	int i;
 	int avg;
 	avg = 0;
-	
+
 	for(i = 0;i < AVG_SIZE;i++)
 		printf("%02d ",avg_array[i]);
 
@@ -365,7 +371,7 @@ int do_avg(int *avg_array, int cur)
 	for(i = 0;i < AVG_SIZE-1;i++)
 		avg_array[i] = avg_array[i+1];
 
-	avg_array[AVG_SIZE-1] = cur;	
+	avg_array[AVG_SIZE-1] = cur;
 
 	for(i = 0;i < AVG_SIZE;i++)
 		printf("%02d ",avg_array[i]);

@@ -97,21 +97,21 @@ void transmitPreamble(void);
 #define AVG_SIZE 4	// may have overflow problem if this no. is too high (12 is def. too high)
 
 volatile int dc2;
+/*
 static int avg1[AVG_SIZE];
 static int avg2[AVG_SIZE];
 static int avg3[AVG_SIZE];
 static int avg4[AVG_SIZE];
-
+*/
 ISR(TIMER1_OVF_vect) 
 { 
 	TCNT1 = 0xBFFF;	// this counts up so the lower, the slower (0xFFFF is the fastest)
 	dc2++;
-/*
+
 	if(dc2 % 2 == 0)
 		PORTB |= (1 << LED);
 	else
 		PORTB &= ~(1 << LED);
-*/
 }
 
 //******************************************************************************************//
@@ -120,20 +120,21 @@ int main(void)
 //	UINT temp;
 	int raw_data1, raw_data2, raw_data3, raw_data4;
 	UCHAR xbyte;
+	int ok1, ok2, ok3, ok4;
 	// hex values 0x2b = 70.7F
 	// and 0x31 = 76.1F
 	int dc3;
 	int i;
 	// works up to as fast as every 2 seconds (main_delay_loop = 2)
 //	UCHAR main_loop_delay = 300;	// 5 minutes
-	UCHAR main_loop_delay = 4;
+	UCHAR main_loop_delay = 3;
 
 	initUSART();
 
 	TCNT1 = 0xFFF0;
 	TCCR1A = 0x00;
-	TCCR1B = (1<<CS10) | (1<<CS12);  // Timer mode with 1024 prescler	(very slow)
-//	TCCR1B = (1<<CS10) | (1<<CS11);	// clk/64							(faster)
+//	TCCR1B = (1<<CS10) | (1<<CS12);  // Timer mode with 1024 prescler	(very slow)
+	TCCR1B = (1<<CS10) | (1<<CS11);	// clk/64							(faster)
 //	TCCR1B = (1<<CS11);	// clk/8	(see page 144 in datasheet)			(much faster)
 //	TCCR1B = (1<<CS10);	// no prescaling								(very fast)
 	
@@ -156,144 +157,77 @@ int main(void)
 	_delay_ms(500);
 	PORTB |= (1 << LED);
 
-#if 0
-	xbyte = 0x4b;
-	while(1)
-	{
-		transmitByte(0);
-		_delay_ms(10);
-		transmitByte(xbyte--);
-		if(xbyte < 2)
-			xbyte = 0x4b;
-//		_delay_ms(2);
-		_delay_ms(100);
-		PORTB |= (1 << LED);
-		_delay_ms(100);
-		PORTB &= ~(1 << LED);
-	}
-//	}while(xbyte > 1);
-#endif
-
 	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
 
-#if 0
-	_delay_ms(1);
+	_delay_ms(5);
 	init1620();
-	_delay_ms(1);
+
+	_delay_ms(5);
 	init1620_2();
-#endif
-	_delay_ms(1);
+
+	_delay_ms(5);
 	init1620_3();
 
-//	_delay_ms(1);
-//	init1620_4();
+	_delay_ms(5);
+	init1620_4();
 
-	_delay_ms(10);
-/*
-	xbyte = 0x4b;
-	do
-	{
-		transmitByte(0);
-		transmitByte(xbyte--);
-
-		_delay_ms(20);
-	}while(xbyte > 1);
-*/
-/*
-	writeByteTo1620( DS1620_CMD_STARTCONV );
-	raw_data1 = readTempFrom1620_int();
-	writeByteTo1620(DS1620_CMD_STOPCONV);
-
-	_delay_ms(10);
-
-	writeByteTo1620_2( DS1620_CMD_STARTCONV );
-	raw_data2 = readTempFrom1620_int_2();
-	writeByteTo1620_2(DS1620_CMD_STOPCONV);
-
-	_delay_ms(10);
-*/
-
-	writeByteTo1620_3( DS1620_CMD_STARTCONV );
-	raw_data3 = readTempFrom1620_int_3();
-	writeByteTo1620_3(DS1620_CMD_STOPCONV);
-
-	_delay_ms(10);
-
-#if 0
-	writeByteTo1620_4( DS1620_CMD_STARTCONV );
-	raw_data4 = readTempFrom1620_int_4();
-	writeByteTo1620_4(DS1620_CMD_STOPCONV);
-
-	for(i = 0;i < AVG_SIZE;i++)
-		avg1[i] = raw_data1;
-
-	for(i = 0;i < AVG_SIZE;i++)
-		avg2[i] = raw_data2;
-#endif
-	for(i = 0;i < AVG_SIZE;i++)
-		avg3[i] = raw_data3;
-
-//	for(i = 0;i < AVG_SIZE;i++)
-//		avg4[i] = raw_data4;
+	_delay_ms(5);
 
 	sei(); // Enable global interrupts by setting global interrupt enable bit in SREG
-
-/*
-	transmitPreamble();
-
-	transmit(raw_data1);
-	_delay_ms(10);
-
-	transmit(raw_data2);
-	_delay_ms(10);
-
-	transmit(raw_data3);
-	_delay_ms(10);
-
-	transmit(raw_data4);
-	_delay_ms(10);
-*/
+	i = 0;
+	ok1 = ok2 = ok3 = ok4 = 0;
 	while(1)
 	{	
-//		if(dc2 % main_loop_delay == 0)
-if(1)
+		if(dc2 % main_loop_delay == 0)
 		{
 			dc3 = dc2;
 
-//			transmitPreamble();
-#if 0
-			if(dc3 % (main_loop_delay) == 0)
+			if(ok1 < 4)
 			{
 				raw_data1 = conv1();
+				if(raw_data1 == 0x1ff)
+				{
+					ok1++;
+				}
 				transmit(raw_data1,1);
 			}
 			_delay_ms(500);
 
 
-			if(dc3 % (main_loop_delay) == 0)
+			if(ok2 < 4)
 			{
 				raw_data2 = conv2();
+				if(raw_data2 == 0x1ff)
+				{
+					ok2++;
+				}
 				transmit(raw_data2,2);
 			}
 			_delay_ms(500);
 
-#endif
-//			if(dc3 % (main_loop_delay) == 0)
-if(1)
+
+			if(ok3 < 4)
 			{
 				raw_data3 = conv3();
+				if(raw_data3 == 0x1ff)
+				{
+					ok3++;
+				}
 				transmit(raw_data3,3);
 			}
 			_delay_ms(1000);
 
-#if 0
-			if(dc3 % (main_loop_delay) == 0)
+			if(ok4 < 4)
 			{
 				raw_data4 = conv4();
+				if(raw_data4 == 0x1ff)
+				{
+					ok4++;
+				}
 				transmit(raw_data4,0);
 			}
 			_delay_ms(500);
-#endif
+			i++;
 		}
 	}
 	return 0;
@@ -310,7 +244,7 @@ return cur;
 	
 //	for(i = 0;i < AVG_SIZE;i++)
 //		printf("%02d ",avg_array[i]);
-
+#if 0
 	for(i = 0;i < AVG_SIZE-1;i++)
 		avg += avg_array[i] = avg_array[i+1];
 
@@ -330,6 +264,7 @@ return cur;
 		avg += avg_array[i];
 
 	return avg/AVG_SIZE;
+#endif
 }
 
 //******************************************************************************************//
@@ -339,10 +274,11 @@ void transmit(int raw_data, UCHAR index)
 	int temp;
 	UCHAR xbyte;
 	index &= 0x03;
-//	transmitByte(index);
 	xbyte = 0xFF;
 	transmitByte(xbyte);
 	transmitByte(xbyte);
+
+	transmitByte(index);
 
 	temp = (UINT)raw_data;
 	temp >>= 8;
@@ -359,11 +295,11 @@ int conv1(void)
 {
 	int raw_data;
 	writeByteTo1620( DS1620_CMD_STARTCONV );
-	PORTB |= (1 << LED);
+//	PORTB |= (1 << LED);
 	raw_data = readTempFrom1620_int();
-	PORTB &= ~(1 << LED);
+//	PORTB &= ~(1 << LED);
 	writeByteTo1620(DS1620_CMD_STOPCONV);
-	raw_data = do_avg(avg1,raw_data);
+//	raw_data = do_avg(avg1,raw_data);
 	return raw_data;
 }
 
@@ -372,11 +308,11 @@ int conv2(void)
 {
 	int raw_data;
 	writeByteTo1620_2( DS1620_CMD_STARTCONV );
-	PORTB |= (1 << LED);
+//	PORTB |= (1 << LED);
 	raw_data = readTempFrom1620_int_2();
-	PORTB &= ~(1 << LED);
+//	PORTB &= ~(1 << LED);
 	writeByteTo1620_2(DS1620_CMD_STOPCONV);
-	raw_data = do_avg(avg2,raw_data);
+//	raw_data = do_avg(avg2,raw_data);
 	return raw_data;
 }
 
@@ -385,11 +321,11 @@ int conv3(void)
 {
 	int raw_data;
 	writeByteTo1620_3( DS1620_CMD_STARTCONV );
-	PORTB |= (1 << LED);
+//	PORTB |= (1 << LED);
 	raw_data = readTempFrom1620_int_3();
-	PORTB &= ~(1 << LED);
+//	PORTB &= ~(1 << LED);
 	writeByteTo1620_3(DS1620_CMD_STOPCONV);
-	raw_data = do_avg(avg3,raw_data);
+//	raw_data = do_avg(avg3,raw_data);
 	return raw_data;
 }
 
@@ -398,11 +334,11 @@ int conv4(void)
 {
 	int raw_data;
 	writeByteTo1620_4( DS1620_CMD_STARTCONV );
-	PORTB |= (1 << LED);
+//	PORTB |= (1 << LED);
 	raw_data = readTempFrom1620_int_4();
-	PORTB &= ~(1 << LED);
+//	PORTB &= ~(1 << LED);
 	writeByteTo1620_4(DS1620_CMD_STOPCONV);
-	raw_data = do_avg(avg4,raw_data);
+//	raw_data = do_avg(avg4,raw_data);
 	return raw_data;
 }
 //******************************************************************************************//

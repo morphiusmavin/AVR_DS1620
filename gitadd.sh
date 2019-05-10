@@ -22,5 +22,6 @@ git add poll_DS1620.vhd
 git add DS1620.vhd
 git add test_DS1620.ucf
 git add test_DS1620.vhd
+git add test_raw.cx
 git status | grep modified
 git status | grep new

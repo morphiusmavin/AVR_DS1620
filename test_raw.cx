@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <sys/time.h>
+#include <time.h>
 
 //#define BAUDRATE B9600
 #define BAUDRATE B19200
@@ -100,6 +101,11 @@ int main(void)
 	struct termios oldtio,newtio;
 	unsigned char buf[LEN];
 	unsigned char buf2[LEN/10];
+	char time_buffer[40];
+	time_t curtime2;
+	struct timeval mtv;
+	int index;
+
 	memset(&newtio, 0, sizeof newtio);
 
 	fd = open (MODEMDEVICE, O_RDWR | O_NOCTTY | O_SYNC);
@@ -153,15 +159,27 @@ int main(void)
 			read(fd,&ch1,1);
 			if(ch1 == 0xFF)
 			{
+				read(fd,&ch1,1);
+				index = (int)ch1;
 				read(fd,&var1,1);
 				read(fd,&var2,1);
 //				printf("%2x %2x: ",var1,var2);
 				res = (unsigned char)var1;
 				res <<= 8;
 				res |= (unsigned char)var2;
-				printf("%0.2f ",convert_to_T_F(res));
-				if(++j > 20)
+				printf("%d:%0.2f  ",index+1,convert_to_T_F(res));
+				if(++j > 14)
 				{
+					gettimeofday(&mtv, NULL);
+					curtime2 = mtv.tv_sec;
+					strftime((char*)&time_buffer[0],30,"%m-%d-%Y %T ",localtime(&curtime2));
+			//		memcpy(time_buffer,time_buffer+10,7);
+			//		time_buffer[9] = 0;
+			//		strcat(time_buffer,": ");
+					strncpy(time_buffer,time_buffer+11,8);
+					time_buffer[8] = 0;
+					printf("%s ",time_buffer);
+
 					printf("\n");
 					j = 0;
 				}

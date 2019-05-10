@@ -185,7 +185,7 @@ int main(void)
 			if(ok1 < 4)
 			{
 				raw_data1 = conv1();
-				if(raw_data1 == 0x1ff)
+				if(raw_data1 == 0x1ff && i < 4)
 				{
 					ok1++;
 				}
@@ -197,7 +197,7 @@ int main(void)
 			if(ok2 < 4)
 			{
 				raw_data2 = conv2();
-				if(raw_data2 == 0x1ff)
+				if(raw_data2 == 0x1ff && i < 4)
 				{
 					ok2++;
 				}
@@ -209,7 +209,7 @@ int main(void)
 			if(ok3 < 4)
 			{
 				raw_data3 = conv3();
-				if(raw_data3 == 0x1ff)
+				if(raw_data3 == 0x1ff && i < 4)
 				{
 					ok3++;
 				}
@@ -220,7 +220,7 @@ int main(void)
 			if(ok4 < 4)
 			{
 				raw_data4 = conv4();
-				if(raw_data4 == 0x1ff)
+				if(raw_data4 == 0x1ff && i < 4)
 				{
 					ok4++;
 				}

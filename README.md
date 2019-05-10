@@ -1,5 +1,7 @@
 <h1>AVR_DS1620</h1>
-Program that runs on AVR ProMini to send temp readings from (4) DS1620 sensors to a<br />
+Program that runs on AVR ProMini to send temp readings from (4) DS1620 sensors<br />
+over the serial port<br />
+previous version before 5/2019 worked with<br />
 Xilinx Spartan-3E over serial port.<br />
 -- AVR -> FPGA -> RS-232 -> monitor<br />
 -- AVR to FPGA uses 5v->3v3 conv<br />
@@ -30,5 +32,11 @@ DS1620_PIN_RST	PB2<br />
 DS1620_PIN_DQ	PC0<br />
 DS1620_PIN_CLK	PC1<br />
 DS1620_PIN_RST	PC2<br />
+<br />
+takes a reading about every 1.25 seconds<br />
+it gives each sensor 4 chances to read something other<br />
+than 31.1F = 0x1FF for the 1st 4 iteration<br />
+so if the temp is really 31.1F then it will read correctly<br />
+but if the temp is 31.1F on startup it may not work<br >
 <br />
 credit to: Jens Willy Johannsen on code for DS1620<br />
